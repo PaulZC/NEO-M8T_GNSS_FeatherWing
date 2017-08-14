@@ -6,12 +6,12 @@ Designed to work with the Adafruit Feather M0 Adalogger for logging of RAWX GNSS
 
 **14-08-2017: Work in progress... PCB is just about ready for testing**
 
+The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design
+
 Useful precise positioning resources can be found at:
 - http://www.rtklib.com
 - https://github.com/tomojitakasu/RTKLIB
 - https://rtklibexplorer.wordpress.com
-
-The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design
 
 Useful documentation about the NEO-M8T and its protocol specification can be found at:
 - [NEO-LEA-M8T-FW3_ProductSummary](https://www.u-blox.com/sites/default/files/products/documents/NEO-LEA-M8T-FW3_ProductSummary_%28UBX-16000801%29.pdf)
