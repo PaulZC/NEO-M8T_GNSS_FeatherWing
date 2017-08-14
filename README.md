@@ -8,6 +8,13 @@ Designed to work with the Adafruit Feather M0 Adalogger for logging of RAWX GNSS
 
 The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design
 
+The [UBX_Echo](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/UBX_Echo) directory contains Arduino code to change the NEO-M8T Baud rate to 115200 and then echo all data to the PC
+
+[NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is Python code which _should_ log the RAWX data direct to file on a PC.
+Works with NAV-PVT messages on the SAM-M8Q, but currently untested with RXM-RAWX messages on the NEO-M8T.
+
+Code to log the RAWX data to the Adalogger SD card will follow...
+
 Useful precise positioning resources can be found at:
 - http://www.rtklib.com
 - https://github.com/tomojitakasu/RTKLIB
