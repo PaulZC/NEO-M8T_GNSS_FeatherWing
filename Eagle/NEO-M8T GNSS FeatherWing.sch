@@ -9108,8 +9108,9 @@ if you will not be using the CR1220 battery.</text>
 <approved hash="113,1,138.676,48.26,SJ3,,,,,"/>
 <approved hash="113,1,27.94,66.1008,TP1,,,,,"/>
 <approved hash="113,1,30.2429,131.949,JP5,,,,,"/>
-<approved hash="113,1,237.244,106.68,SJ5,,,,,"/>
+<approved hash="113,1,244.864,106.68,SJ5,,,,,"/>
 <approved hash="113,1,41.6645,53.34,SJ4,,,,,"/>
+<approved hash="113,1,233.68,104.201,TP2,,,,,"/>
 </errors>
 </schematic>
 </drawing>
