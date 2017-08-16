@@ -8520,7 +8520,6 @@ BF959 corrected 2008.03.06&lt;br&gt;</description>
 <parts>
 <part name="U$1" library="microbuilder" deviceset="FRAME_A4_ADAFRUIT" device=""/>
 <part name="LED1" library="microbuilder" deviceset="LED" device="0805_NOOUTLINE" value="RED"/>
-<part name="R1" library="microbuilder" deviceset="RESISTOR" device="0805_NOOUTLINE" value="470 ohm"/>
 <part name="U$3" library="microbuilder" deviceset="3.3V" device=""/>
 <part name="U$4" library="microbuilder" deviceset="3.3V" device=""/>
 <part name="C1" library="microbuilder" deviceset="CAP_CERAMIC" device="0805-NOOUTLINE" value="0.1uF"/>
@@ -8550,7 +8549,6 @@ BF959 corrected 2008.03.06&lt;br&gt;</description>
 <part name="TP1" library="microbuilder" deviceset="TESTPOINT" device="ROUND1.5MM"/>
 <part name="Q2" library="transistor" deviceset="*-NPN-" device="SOT23-BEC" technology="MMBT2222ALT1" value="2N2222"/>
 <part name="U$13" library="microbuilder" deviceset="GND" device=""/>
-<part name="R3" library="microbuilder" deviceset="RESISTOR" device="0805_NOOUTLINE" value="1K"/>
 <part name="U$17" library="microbuilder" deviceset="GND" device=""/>
 <part name="R4" library="microbuilder" deviceset="RESISTOR" device="0805_NOOUTLINE" value="10 ohm"/>
 <part name="JP5" library="microbuilder" deviceset="HEADER-1X2" device="ROUND"/>
@@ -8565,6 +8563,10 @@ BF959 corrected 2008.03.06&lt;br&gt;</description>
 <part name="C3" library="microbuilder" deviceset="CAP_CERAMIC" device="0805-NOOUTLINE" value="10nF"/>
 <part name="SJ4" library="microbuilder" deviceset="SOLDERJUMPER" device=""/>
 <part name="TP2" library="microbuilder" deviceset="TESTPOINT" device="ROUND1.5MM"/>
+<part name="R5" library="microbuilder" deviceset="RESISTOR" device="_0603_NOOUT" value="1K"/>
+<part name="R6" library="microbuilder" deviceset="RESISTOR" device="_0603_NOOUT" value="1K"/>
+<part name="R1" library="microbuilder" deviceset="RESISTOR" device="_0603_NOOUT" value="470R"/>
+<part name="R3" library="microbuilder" deviceset="RESISTOR" device="_0603_NOOUT" value="1K"/>
 </parts>
 <sheets>
 <sheet>
@@ -8584,7 +8586,6 @@ if you will not be using the CR1220 battery.</text>
 <instances>
 <instance part="U$1" gate="G$1" x="0" y="0"/>
 <instance part="LED1" gate="G$1" x="218.44" y="71.12" rot="R270"/>
-<instance part="R1" gate="G$1" x="218.44" y="83.82" rot="R90"/>
 <instance part="U$3" gate="G$1" x="91.44" y="48.26"/>
 <instance part="U$4" gate="G$1" x="180.34" y="91.44"/>
 <instance part="C1" gate="G$1" x="180.34" y="60.96"/>
@@ -8605,10 +8606,10 @@ if you will not be using the CR1220 battery.</text>
 <instance part="JP4" gate="A" x="114.3" y="50.8" rot="R270"/>
 <instance part="JP2" gate="A" x="119.38" y="99.06" rot="R90"/>
 <instance part="Q1" gate="G$1" x="180.34" y="78.74"/>
-<instance part="JP1" gate="A" x="27.94" y="99.06" rot="R180"/>
+<instance part="JP1" gate="A" x="25.4" y="88.9" rot="R180"/>
 <instance part="R2" gate="G$1" x="160.02" y="66.04" rot="R90"/>
 <instance part="U$7" gate="G$1" x="160.02" y="55.88"/>
-<instance part="JP3" gate="G$1" x="27.94" y="119.38" rot="R180"/>
+<instance part="JP3" gate="G$1" x="25.4" y="109.22" rot="R180"/>
 <instance part="SJ2" gate="1" x="134.62" y="48.26" rot="R90"/>
 <instance part="SJ3" gate="1" x="137.16" y="48.26" rot="MR90"/>
 <instance part="TP1" gate="G$1" x="27.94" y="63.5"/>
@@ -8617,10 +8618,9 @@ if you will not be using the CR1220 battery.</text>
 <attribute name="VALUE" x="218.44" y="55.88" size="1.778" layer="96" rot="MR0"/>
 </instance>
 <instance part="U$13" gate="G$1" x="218.44" y="48.26"/>
-<instance part="R3" gate="G$1" x="233.68" y="58.42" rot="R180"/>
 <instance part="U$17" gate="G$1" x="180.34" y="53.34"/>
 <instance part="R4" gate="G$1" x="104.14" y="129.54"/>
-<instance part="JP5" gate="G$1" x="27.94" y="134.62" rot="R180"/>
+<instance part="JP5" gate="G$1" x="25.4" y="124.46" rot="R180"/>
 <instance part="U$2" gate="G$1" x="43.18" y="66.04"/>
 <instance part="L1" gate="G$1" x="83.82" y="129.54" rot="R180"/>
 <instance part="U1" gate="G$1" x="200.66" y="157.48"/>
@@ -8632,6 +8632,10 @@ if you will not be using the CR1220 battery.</text>
 <instance part="C3" gate="G$1" x="93.98" y="119.38"/>
 <instance part="SJ4" gate="1" x="43.18" y="53.34" rot="R90"/>
 <instance part="TP2" gate="G$1" x="233.68" y="101.6"/>
+<instance part="R5" gate="G$1" x="35.56" y="132.08" rot="R270"/>
+<instance part="R6" gate="G$1" x="45.72" y="132.08" rot="R270"/>
+<instance part="R1" gate="G$1" x="218.44" y="83.82" rot="R270"/>
+<instance part="R3" gate="G$1" x="233.68" y="58.42" rot="R180"/>
 </instances>
 <busses>
 </busses>
@@ -8765,8 +8769,8 @@ if you will not be using the CR1220 battery.</text>
 </net>
 <net name="TX" class="0">
 <segment>
-<wire x1="43.18" y1="119.38" x2="30.48" y2="119.38" width="0.1524" layer="91"/>
-<label x="35.56" y="119.38" size="1.778" layer="95"/>
+<wire x1="40.64" y1="109.22" x2="27.94" y2="109.22" width="0.1524" layer="91"/>
+<label x="33.02" y="109.22" size="1.778" layer="95"/>
 <pinref part="JP3" gate="G$1" pin="2"/>
 </segment>
 <segment>
@@ -8782,8 +8786,8 @@ if you will not be using the CR1220 battery.</text>
 </net>
 <net name="RX" class="0">
 <segment>
-<wire x1="43.18" y1="116.84" x2="30.48" y2="116.84" width="0.1524" layer="91"/>
-<label x="35.56" y="116.84" size="1.778" layer="95"/>
+<wire x1="40.64" y1="106.68" x2="27.94" y2="106.68" width="0.1524" layer="91"/>
+<label x="33.02" y="106.68" size="1.778" layer="95"/>
 <pinref part="JP3" gate="G$1" pin="1"/>
 </segment>
 <segment>
@@ -8883,8 +8887,8 @@ if you will not be using the CR1220 battery.</text>
 </net>
 <net name="GRESET" class="0">
 <segment>
-<wire x1="53.34" y1="93.98" x2="30.48" y2="93.98" width="0.1524" layer="91"/>
-<label x="38.1" y="93.98" size="1.778" layer="95"/>
+<wire x1="50.8" y1="83.82" x2="27.94" y2="83.82" width="0.1524" layer="91"/>
+<label x="35.56" y="83.82" size="1.778" layer="95"/>
 <pinref part="JP1" gate="A" pin="1"/>
 </segment>
 <segment>
@@ -8898,7 +8902,7 @@ if you will not be using the CR1220 battery.</text>
 <label x="231.14" y="144.78" size="1.778" layer="95"/>
 </segment>
 </net>
-<net name="N$12" class="0">
+<net name="RST" class="0">
 <segment>
 <pinref part="SW1" gate="G$1" pin="S"/>
 <pinref part="SW1" gate="G$1" pin="S1"/>
@@ -8943,21 +8947,29 @@ if you will not be using the CR1220 battery.</text>
 <label x="182.88" y="68.58" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="R1" gate="G$1" pin="2"/>
-<wire x1="218.44" y1="88.9" x2="218.44" y2="93.98" width="0.1524" layer="91"/>
 <label x="213.36" y="93.98" size="1.778" layer="95"/>
+<pinref part="R1" gate="G$1" pin="1"/>
+<wire x1="218.44" y1="88.9" x2="218.44" y2="93.98" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="23_VCC"/>
 <wire x1="170.18" y1="114.3" x2="157.48" y2="114.3" width="0.1524" layer="91"/>
 <label x="157.48" y="114.3" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="R5" gate="G$1" pin="1"/>
+<wire x1="35.56" y1="137.16" x2="35.56" y2="139.7" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="139.7" x2="45.72" y2="139.7" width="0.1524" layer="91"/>
+<pinref part="R6" gate="G$1" pin="1"/>
+<wire x1="45.72" y1="139.7" x2="45.72" y2="137.16" width="0.1524" layer="91"/>
+<label x="35.56" y="139.7" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="ENABLE" class="0">
 <segment>
 <pinref part="JP1" gate="A" pin="4"/>
-<wire x1="30.48" y1="101.6" x2="53.34" y2="101.6" width="0.1524" layer="91"/>
-<label x="38.1" y="101.6" size="1.778" layer="95"/>
+<wire x1="27.94" y1="91.44" x2="50.8" y2="91.44" width="0.1524" layer="91"/>
+<label x="35.56" y="91.44" size="1.778" layer="95"/>
 </segment>
 <segment>
 <pinref part="Q1" gate="G$1" pin="G"/>
@@ -8981,14 +8993,14 @@ if you will not be using the CR1220 battery.</text>
 </net>
 <net name="TP" class="0">
 <segment>
+<label x="243.84" y="58.42" size="1.778" layer="95"/>
 <pinref part="R3" gate="G$1" pin="1"/>
 <wire x1="238.76" y1="58.42" x2="248.92" y2="58.42" width="0.1524" layer="91"/>
-<label x="243.84" y="58.42" size="1.778" layer="95"/>
 </segment>
 <segment>
 <pinref part="JP1" gate="A" pin="3"/>
-<wire x1="30.48" y1="99.06" x2="53.34" y2="99.06" width="0.1524" layer="91"/>
-<label x="38.1" y="99.06" size="1.778" layer="95"/>
+<wire x1="27.94" y1="88.9" x2="50.8" y2="88.9" width="0.1524" layer="91"/>
+<label x="35.56" y="88.9" size="1.778" layer="95"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="3_TIMEPULSE"/>
@@ -9007,14 +9019,14 @@ if you will not be using the CR1220 battery.</text>
 <segment>
 <pinref part="Q2" gate="G$1" pin="B"/>
 <pinref part="R3" gate="G$1" pin="2"/>
-<wire x1="223.52" y1="58.42" x2="228.6" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="228.6" y1="58.42" x2="223.52" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="EXTINT" class="0">
 <segment>
 <pinref part="JP1" gate="A" pin="2"/>
-<wire x1="30.48" y1="96.52" x2="53.34" y2="96.52" width="0.1524" layer="91"/>
-<label x="38.1" y="96.52" size="1.778" layer="95"/>
+<wire x1="27.94" y1="86.36" x2="50.8" y2="86.36" width="0.1524" layer="91"/>
+<label x="35.56" y="86.36" size="1.778" layer="95"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="4_EXTINT"/>
@@ -9025,8 +9037,8 @@ if you will not be using the CR1220 battery.</text>
 <net name="N$2" class="0">
 <segment>
 <pinref part="LED1" gate="G$1" pin="A"/>
-<pinref part="R1" gate="G$1" pin="1"/>
 <wire x1="218.44" y1="76.2" x2="218.44" y2="78.74" width="0.1524" layer="91"/>
+<pinref part="R1" gate="G$1" pin="2"/>
 </segment>
 </net>
 <net name="VCC_RF" class="0">
@@ -9044,8 +9056,12 @@ if you will not be using the CR1220 battery.</text>
 <net name="SDA" class="0">
 <segment>
 <pinref part="JP5" gate="G$1" pin="2"/>
-<wire x1="30.48" y1="134.62" x2="43.18" y2="134.62" width="0.1524" layer="91"/>
-<label x="35.56" y="134.62" size="1.778" layer="95"/>
+<wire x1="27.94" y1="124.46" x2="35.56" y2="124.46" width="0.1524" layer="91"/>
+<label x="48.26" y="124.46" size="1.778" layer="95"/>
+<pinref part="R5" gate="G$1" pin="2"/>
+<wire x1="35.56" y1="124.46" x2="53.34" y2="124.46" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="127" x2="35.56" y2="124.46" width="0.1524" layer="91"/>
+<junction x="35.56" y="124.46"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="18_SDA/SPI_CS_N"/>
@@ -9056,8 +9072,12 @@ if you will not be using the CR1220 battery.</text>
 <net name="SCL" class="0">
 <segment>
 <pinref part="JP5" gate="G$1" pin="1"/>
-<wire x1="30.48" y1="132.08" x2="43.18" y2="132.08" width="0.1524" layer="91"/>
-<label x="35.56" y="132.08" size="1.778" layer="95"/>
+<wire x1="27.94" y1="121.92" x2="45.72" y2="121.92" width="0.1524" layer="91"/>
+<label x="48.26" y="121.92" size="1.778" layer="95"/>
+<pinref part="R6" gate="G$1" pin="2"/>
+<wire x1="45.72" y1="121.92" x2="53.34" y2="121.92" width="0.1524" layer="91"/>
+<wire x1="45.72" y1="127" x2="45.72" y2="121.92" width="0.1524" layer="91"/>
+<junction x="45.72" y="121.92"/>
 </segment>
 <segment>
 <pinref part="U1" gate="G$1" pin="19_SCL/SPI_CLK"/>
@@ -9102,12 +9122,12 @@ if you will not be using the CR1220 battery.</text>
 <approved hash="113,1,84.8445,55.88,SJ1,,,,,"/>
 <approved hash="113,1,114.431,53.1029,JP4,,,,,"/>
 <approved hash="113,1,117.979,96.7571,JP2,,,,,"/>
-<approved hash="113,1,30.2429,96.3888,JP1,,,,,"/>
-<approved hash="113,1,30.2429,116.709,JP3,,,,,"/>
+<approved hash="113,1,27.7029,86.2288,JP1,,,,,"/>
+<approved hash="113,1,27.7029,106.549,JP3,,,,,"/>
 <approved hash="113,1,133.104,48.26,SJ2,,,,,"/>
 <approved hash="113,1,138.676,48.26,SJ3,,,,,"/>
 <approved hash="113,1,27.94,66.1008,TP1,,,,,"/>
-<approved hash="113,1,30.2429,131.949,JP5,,,,,"/>
+<approved hash="113,1,27.7029,121.789,JP5,,,,,"/>
 <approved hash="113,1,244.864,106.68,SJ5,,,,,"/>
 <approved hash="113,1,41.6645,53.34,SJ4,,,,,"/>
 <approved hash="113,1,233.68,104.201,TP2,,,,,"/>
