@@ -207,9 +207,9 @@ BACKUP</text>
 <text x="39.99230625" y="1.208275" size="1.27" layer="51" ratio="12">R4</text>
 <text x="43.872403125" y="1.242309375" size="1.27" layer="51" ratio="12">L1</text>
 <text x="44.059596875" y="11.180828125" size="1.27" layer="51" ratio="12">Q2</text>
-<text x="47.3270625" y="6.568953125" size="1.27" layer="51" ratio="12">X1</text>
+<text x="47.412153125" y="5.64998125" size="1.27" layer="51" ratio="12">X1</text>
 <text x="42.970446875" y="13.6144" size="1.016" layer="51" ratio="12">LED1</text>
-<text x="31.5173375" y="16.98396875" size="1.27" layer="51" ratio="12">JP3</text>
+<text x="32.742634375" y="17.069059375" size="1.27" layer="51" ratio="12">JP3</text>
 <text x="23.809709375" y="14.96238125" size="0.6096" layer="22" font="vector" ratio="16" rot="MR0" align="center">GRESET</text>
 <circle x="1.651" y="16.891" radius="0.499871875" width="0" layer="31"/>
 <circle x="46.505" y="1.061" radius="0.499871875" width="0" layer="31"/>
@@ -218,6 +218,8 @@ BACKUP</text>
 <text x="41.644828125" y="12.8704375" size="1.4224" layer="22" font="vector" ratio="15" rot="MR0" align="top-left">GNSS</text>
 <text x="23.18715625" y="6.278878125" size="0.6096" layer="22" font="vector" ratio="16" rot="MR0" align="center">SAFEBOOT</text>
 <text x="27.862784375" y="18.267165625" size="0.8128" layer="21" ratio="14" rot="R270">GRST</text>
+<text x="40.4517875" y="17.086078125" size="1.27" layer="51" ratio="12">JP5</text>
+<text x="14.530834375" y="21.6375" size="0.8128" layer="21" ratio="14" align="center-right">NEO-M8T GNSS</text>
 </plain>
 <libraries>
 <library name="microbuilder">
@@ -871,7 +873,7 @@ Your Multi-CB Team
 <element name="U1" library="ubloxLib" package="NEO-M8" value="NEO-M8" x="38.069271875" y="11.7254" rot="R270"/>
 <element name="SJ5" library="microbuilder" package="SOLDERJUMPER_ARROW_NOPASTE" value="" x="31.789628125" y="5.892803125" smashed="yes" rot="MR270">
 <attribute name="BOM" value="EXCLUDE" x="31.789628125" y="5.892803125" size="1.778" layer="28" rot="MR270" display="off"/>
-<attribute name="NAME" x="30.519628125" y="7.670803125" size="0.8128" layer="52" ratio="18" rot="MR270"/>
+<attribute name="NAME" x="30.53664375" y="7.092190625" size="0.8128" layer="52" ratio="18" rot="MR270"/>
 <attribute name="VALUE" x="33.440628125" y="7.543803125" size="0.4064" layer="28" ratio="10" rot="MR270"/>
 </element>
 <element name="C3" library="microbuilder" package="0805-NO" value="10nF" x="36.384484375" y="3.411725" smashed="yes" rot="R180">
@@ -879,11 +881,11 @@ Your Multi-CB Team
 </element>
 <element name="SJ4" library="microbuilder" package="SOLDERJUMPER_ARROW_NOPASTE" value="" x="19.99615" y="9.053571875" smashed="yes" rot="MR270">
 <attribute name="BOM" value="EXCLUDE" x="19.99615" y="9.053571875" size="1.778" layer="28" rot="MR270" display="off"/>
-<attribute name="NAME" x="18.72615" y="10.831571875" size="0.8128" layer="52" ratio="18" rot="MR270"/>
+<attribute name="NAME" x="18.760184375" y="10.235940625" size="0.8128" layer="52" ratio="18" rot="MR270"/>
 <attribute name="VALUE" x="21.64715" y="10.704571875" size="0.4064" layer="28" ratio="10" rot="MR270"/>
 </element>
 <element name="TP2" library="microbuilder" package="TESTPOINT_ROUND_1.5MM" value="" x="26.67" y="6.35" smashed="yes" rot="MR0">
-<attribute name="NAME" x="25.527" y="6.223" size="0.8128" layer="52" ratio="18" rot="MR0"/>
+<attribute name="NAME" x="25.561034375" y="5.899659375" size="0.8128" layer="52" ratio="18" rot="MR0"/>
 <attribute name="VALUE" x="25.527" y="5.715" size="0.4064" layer="28" ratio="10" rot="MR0"/>
 </element>
 <element name="R5" library="microbuilder" package="0603-NO" value="1K" x="46.646340625" y="17.035015625" smashed="yes" rot="R270">
@@ -936,7 +938,7 @@ Your Multi-CB Team
 <via x="42.661334375" y="11.8960875" extent="1-16" drill="0.5"/>
 <via x="31.7713375" y="8.16101875" extent="1-16" drill="0.5"/>
 <via x="31.109409375" y="9.867640625" extent="1-16" drill="0.5"/>
-<via x="24.85211875" y="12.946634375" extent="1-16" drill="0.5"/>
+<via x="25.192478125" y="12.70838125" extent="1-16" drill="0.5"/>
 <via x="31.66085" y="12.095228125" extent="1-16" drill="0.5"/>
 <via x="49.887890625" y="3.547109375" extent="1-16" drill="0.5"/>
 <via x="45.752509375" y="5.600190625" extent="1-16" drill="0.5"/>
@@ -979,19 +981,21 @@ Your Multi-CB Team
 <wire x1="32.869271875" y1="17.3254" x2="32.844740625" y2="17.30086875" width="0.4064" layer="1"/>
 <wire x1="32.844740625" y1="17.30086875" x2="32.878775" y2="15.231109375" width="0.4064" layer="1"/>
 <via x="32.878775" y="15.231109375" extent="1-16" drill="0.5"/>
-<wire x1="21.59" y1="12.7" x2="22.978871875" y2="12.7" width="0.4064" layer="16"/>
-<wire x1="25.4929625" y1="15.214090625" x2="28.998671875" y2="15.214090625" width="0.4064" layer="16"/>
+<wire x1="28.998671875" y1="15.214090625" x2="25.4929625" y2="15.214090625" width="0.4064" layer="16"/>
 <wire x1="28.998671875" y1="15.214090625" x2="29.526228125" y2="14.686534375" width="0.4064" layer="16"/>
 <wire x1="32.010859375" y1="14.686534375" x2="32.878775" y2="15.231109375" width="0.4064" layer="16"/>
-<wire x1="22.978871875" y1="12.7" x2="25.4929625" y2="15.214090625" width="0.4064" layer="16"/>
 <wire x1="29.526228125" y1="14.686534375" x2="32.010859375" y2="14.686534375" width="0.4064" layer="16"/>
 <wire x1="19.99615" y1="10.069571875" x2="19.99615" y2="11.9095" width="0.4064" layer="16"/>
 <wire x1="19.99615" y1="11.9095" x2="20.07054375" y2="12.089103125" width="0.4064" layer="16" curve="-44.999502"/>
 <wire x1="20.607046875" y1="12.62560625" x2="20.78665" y2="12.7" width="0.4064" layer="16" curve="-44.999295"/>
 <wire x1="20.78665" y1="12.7" x2="21.59" y2="12.7" width="0.4064" layer="16"/>
 <wire x1="20.07054375" y1="12.089103125" x2="20.607046875" y2="12.62560625" width="0.4064" layer="16"/>
-<wire x1="24.13" y1="11.43" x2="22.86" y2="12.7" width="0.4064" layer="16"/>
 <wire x1="22.86" y1="12.7" x2="21.59" y2="12.7" width="0.4064" layer="16"/>
+<wire x1="25.4929625" y1="15.214090625" x2="24.13" y2="13.851128125" width="0.4064" layer="16"/>
+<wire x1="24.13" y1="12.7217375" x2="24.13" y2="13.851128125" width="0.4064" layer="16"/>
+<wire x1="24.13" y1="12.7217375" x2="24.13" y2="11.43" width="0.4064" layer="16"/>
+<wire x1="24.13" y1="12.7" x2="24.13" y2="12.7217375" width="0.4064" layer="16"/>
+<wire x1="21.59" y1="12.7" x2="24.13" y2="12.7" width="0.4064" layer="16"/>
 </signal>
 <signal name="TX">
 <contactref element="JP3" pad="2"/>
