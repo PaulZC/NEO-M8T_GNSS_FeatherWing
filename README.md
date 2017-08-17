@@ -10,6 +10,10 @@ Designed to work with the Adafruit Feather M0 Adalogger for logging of RAWX GNSS
 
 ![PCB_BOTTOM](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/PCB_BOTTOM.jpg)
 
+PCB images created using http://viewer.tracespace.io/
+
+See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/NEO-M8T_GNSS_FeatherWing.pdf) for the BOM etc.
+
 The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design
 
 The [UBX_Echo](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/UBX_Echo) directory contains Arduino code to change the NEO-M8T Baud rate to 115200 and then echo all data to the PC
