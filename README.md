@@ -4,7 +4,7 @@ A clone of the Adafruit Ultimate GPS FeatherWing but with the u-blox NEO-M8T (ex
 
 Designed to work with the Adafruit Feather M0 Adalogger for logging of RAWX GNSS data direct to SD card for post-processed precise positioning using (e.g.) RTKLIB
 
-**16-08-2017: Work in progress... PCB is ready to send for manufacture**
+**19-08-2017: Work in progress... PCB is ready to send for manufacture. Draft Arduino code is complete**
 
 ![PCB_TOP](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/PCB_TOP.jpg)
 
@@ -16,12 +16,11 @@ See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_Feathe
 
 The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design
 
-The [UBX_Echo](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/UBX_Echo) directory contains Arduino code to change the NEO-M8T Baud rate to 115200 and then echo all data to the PC
+The [RAWX_Logger](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger) directory contains Arduino code which _should_ log the RAWX data to the Adalogger SD card. Works with NAV-PVT messages on the MAX-M8Q, but is currently untested with RXM-RAWX messages on the NEO-M8T
 
-[NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is Python code which _should_ log the RAWX data direct to file on a PC.
-Works with NAV-PVT messages on the SAM-M8Q, but is currently untested with RXM-RAWX messages on the NEO-M8T.
-
-Code to log the RAWX data to the Adalogger SD card will follow...
+To log the data on a PC:
+- The [UBX_Echo](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/UBX_Echo) directory contains Arduino code to change the NEO-M8T Baud rate to 115200 and then echo all data to the PC
+- [NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is Python code which _should_ log the RAWX data to file on a PC. Works with NAV-PVT messages on the SAM-M8Q, but is currently untested with RXM-RAWX messages on the NEO-M8T
 
 Useful precise positioning resources can be found at:
 - http://www.rtklib.com
