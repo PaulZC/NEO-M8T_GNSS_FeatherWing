@@ -53,7 +53,6 @@ float vbat;
 File rawx_dataFile;
 char rawx_filename[] = "20000000/000000.bin";
 char dirname[] = "20000000";
-boolean fileReady = false;
 
 // Count number of valid fixes before starting to log (to avoid possible corrupt file names)
 int valfix = 0;
@@ -144,7 +143,6 @@ void setup()
   delay(10000); // Allow 10 sec for user to open serial monitor
   //while (!Serial); // Wait for user to run python script or open serial monitor
 
-  Serial1.begin(9600);
   Serial.begin(115200);
 
   Serial.println("Log GNSS RAWX data to SD card");
@@ -302,7 +300,6 @@ void loop() // run over and over again
           // syntax checking:
           // check if voltage is > 3.55V, if not then don't try to write!
           if (vbat < 3.55) {
-            fileReady = false; // Start new file when battery is recharged
             Serial.println("Low Battery!");
             break;
           }
@@ -381,6 +378,11 @@ void loop() // run over and over again
           bufferPointer = 0;
           digitalWrite(13, HIGH); // flash red LED
           rawx_dataFile.write(serBuffer, SDpacket);
+#ifdef DEBUG
+          Serial.print("SD Write: ");
+          Serial.print(SDpacket);
+          Serial.println(" Bytes");
+#endif
           digitalWrite(13, LOW);
         }
       }
@@ -391,6 +393,11 @@ void loop() // run over and over again
         if ((digitalRead(swPin) == LOW) or (vbat < 3.55)) {
           if (bufferPointer > 0) {
             rawx_dataFile.write(serBuffer, bufferPointer); // Write remaining data
+#ifdef DEBUG
+            Serial.print("Penultimate SD Write: ");
+            Serial.print(bufferPointer);
+            Serial.println(" Bytes");
+#endif
           }
           loop_step = close_file; // now close the file
           break;
@@ -399,27 +406,41 @@ void loop() // run over and over again
     }
     break;
 
-    // Save any remaining serial data and close the file
+    // Disable RAWX messages, save any residual data and close the file
     case close_file: {
       Serial1.write(setRAWXoff, len_setRAWX); // Disable messages
       int waitcount = 0;
+#ifdef DEBUG
+      int extraBytes = 0;
+#endif
       // leave 10 bytes in the buffer as this should be the message acknowledgement
-      while (waitcount < 1000) {
+      while (waitcount < 1000) { // Wait for ~1 sec for residual data
         if (Serial1.available() > 10) {
           byte c = Serial1.read();
           digitalWrite(13, HIGH); // flash red LED
           rawx_dataFile.write(c);
           digitalWrite(13, LOW);
+#ifdef DEBUG
+          extraBytes++;
+#endif
         }
         else {
           waitcount++;
           delay(1);
         }
       }
+#ifdef DEBUG
+      if (extraBytes > 0) {
+        Serial.print("Final SD Write: ");
+        Serial.print(extraBytes);
+        Serial.println(" Bytes");
+      }
+#endif
       rawx_dataFile.close(); // close the file
       digitalWrite(13, HIGH); // leave the red led on
       loop_step = loop_end;
-      Serial.print("File closed!");
+      Serial.println("File closed!");
+      Serial.println("Waiting for reset...");
     }
     break;
     
