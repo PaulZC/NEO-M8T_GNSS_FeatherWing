@@ -44,7 +44,7 @@ The u-box M8 chipset also supports much more comprehensive UBX binary format mes
 The baud rate by default is 9600 baud, but you can configure the module to use a different baud rate if desired. For RAWX logging you will need to use at least 115200 baud.
 
 The NEO-M8T Tx and Rx pins are wired directly to the Serial pins at the bottom right of the Feather.
-If you need to connect to a different set of pins, you can cut the RX and TX jumpers on the bottom of the board and connect instead to the TX and RX pads near the TP LED.
+If you need to connect to a different set of pins, you can cut the RX and TX jumpers on the bottom of the board and connect instead to the TX and RX pads at the top of the board.
 
 The ATSAMD21G18 ARM Cortex M0 chip on the Adalogger has multiple Sercom channels which can be used to provide additional serial ports, which is handy if you're already using Serial1 for something else:
 - Adafruit: https://learn.adafruit.com/using-atsamd21-sercom-to-add-more-spi-i2c-serial-ports/creating-a-new-serial
@@ -68,7 +68,7 @@ The NEO-M8T SPI interface can be enabled by shorting the DSEL split pad:
 - TX becomes SPI MISO
 - RX becomes SPI MOSI
 - You may need to remove the SCL and SDA pull-up resistors (R5 & R6)
-- You will need to cut the TX and RX split pads to isolate the Adalogger UART pins
+- You will need to cut the TX and RX split pads to isolate the Adalogger Serial pins
 
 ![NEO-M8T_FeatherWing_DSEL](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_DSEL.JPG)
 
@@ -84,7 +84,7 @@ There is a small button that will connect the microcontroller RESET pin to groun
 
 ![NEO-M8T_FeatherWing_BreakoutPins](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_BreakoutPins.JPG)
 
-**GPS Reset** is connected to the NEO-M8T reset pin. You can reset the NEO-M8T by pulling this pin low. If you want to reset both the Feather _and_ the NEO-M8T via the reset button, short the GRESET split pad on the rear of the PCB.
+**GRST** is connected to the NEO-M8T reset pin. You can reset the NEO-M8T by pulling this pin low. If you want to reset both the Feather _and_ the NEO-M8T via the reset button, short the GRESET split pad on the rear of the PCB.
 Note that pulling GPS Reset low does not put the NEO-M8T into a low power state, you'll want to disable it instead (see En below).
 
 ![NEO-M8T_FeatherWing_GReset](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_GReset.JPG)
@@ -137,7 +137,7 @@ You can find the messages to change the navigation mode and GNSS configuration i
 - https://www.adafruit.com/products/2796
 - https://learn.adafruit.com/adafruit-feather-m0-adalogger
 
-The code logs RAWX data continuously to SD card until the stop button is pressed. Since the code is logging a large ammount of data, it is necessary to keep the log file open throughout.
+The code logs RAWX data continuously to SD card until the stop button is pressed. Since the code is logging a large amount of data, it is necessary to keep the log file open throughout.
 If the power is removed or the board is reset before the stop button is pressed, the logged data will be lost.
 
 Connect a normally-open push-to-close switch between swPin and GND. By default, swPin is Digital Pin 15 (0.2" away from the GND pin on the Adalogger). The pin can be changed by editing the code.
