@@ -3,7 +3,7 @@
 A clone of the [Adafruit Ultimate GPS FeatherWing](https://www.adafruit.com/product/3133) but with the u-blox NEO-M8T replacing the GlobalTop FGPMMOPA6H. The NEO-M8T can receive signals from GPS, Galileo and either GLONASS or BeiDou concurrently and supports both SBAS and QZSS.
 It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for post-process precise positioning.
 
-![NEO-M8T_FeatherWing](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing.jpg)
+![NEO-M8T_FeatherWing](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing.JPG)
 
 See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/NEO-M8T_GNSS_FeatherWing.pdf) for the schematic, layout and Bill Of Materials.
 
@@ -23,19 +23,19 @@ This guide concentrates on the differences between the NEO-M8T FeatherWing and t
 
 Like the Ultimate GPS FeatherWing, the NEO-M8T FeatherWing runs from +3.3V power and uses 3V logic. The NEO-M8T is powered directly from the 3V and GND pins on the bottom left of the Feather. Each Adafruit Feather has a regulator to provide clean 3V power from USB or battery power.
 
-![NEO-M8T_FeatherWing_PowerTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_PowerTop.jpg)
+![NEO-M8T_FeatherWing_PowerTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_PowerTop.JPG)
 
-![NEO-M8T_FeatherWing_PowerBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_PowerBottom.jpg)
+![NEO-M8T_FeatherWing_PowerBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_PowerBottom.JPG)
 
 If you want to completely power down the Adalogger _and_ the NEO-M8T, you can do this by pulling the Feather EN pin low (e.g. by connecting it to GND via a small slide switch).
 
-![NEO-M8T_FeatherWing_EN](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_EN.jpg)
+![NEO-M8T_FeatherWing_EN](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_EN.JPG)
 
 ## Serial Data Pins
 
-![NEO-M8T_FeatherWing_TxRxTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_TxRxTop.jpg)
+![NEO-M8T_FeatherWing_TxRxTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_TxRxTop.JPG)
 
-![NEO-M8T_FeatherWing_TxRxBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_TxRxBottom.jpg)
+![NEO-M8T_FeatherWing_TxRxBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_TxRxBottom.JPG)
 
 The NEO-M8T FeatherWing, like the Ultimate GPS FeatherWing, can communicate over UART serial. It sends ASCII NMEA sentences from the TX pin to the microcontroller RX pin and can be controlled to change its data output from the microcontroller TX pin. Logic level is 3V for both.
 
@@ -52,9 +52,9 @@ The ATSAMD21G18 ARM Cortex M0 chip on the Adalogger has multiple Sercom channels
 
 ## I2C Interface
 
-![NEO-M8T_FeatherWing_I2CTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_I2CTop.jpg)
+![NEO-M8T_FeatherWing_I2CTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_I2CTop.JPG)
 
-![NEO-M8T_FeatherWing_I2CBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_I2CBottom.jpg)
+![NEO-M8T_FeatherWing_I2CBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_I2CBottom.JPG)
 
 The NEO-M8T also provides an I2C (DDC) interface. The SCL and SDA pins are broken out onto two pads near the top right corner of the board. Pull up resistors are provided (R5 & R6).
 
@@ -70,24 +70,24 @@ The NEO-M8T SPI interface can be enabled by shorting the DSEL split pad:
 - You may need to remove the SCL and SDA pull-up resistors (R5 & R6)
 - You will need to cut the TX and RX split pads to isolate the Adalogger UART pins
 
-![NEO-M8T_FeatherWing_DSEL](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_DSEL.jpg)
+![NEO-M8T_FeatherWing_DSEL](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_DSEL.JPG)
 
 ## Reset Button
 
-![NEO-M8T_FeatherWing_ResetTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_ResetTop.jpg)
+![NEO-M8T_FeatherWing_ResetTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_ResetTop.JPG)
 
-![NEO-M8T_FeatherWing_ResetBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_ResetBottom.jpg)
+![NEO-M8T_FeatherWing_ResetBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_ResetBottom.JPG)
 
 There is a small button that will connect the microcontroller RESET pin to ground for resetting it. Handy to restart the Feather. Note that this is not connected to NEO-M8T reset unless you short the GRESET split pad on the rear of the PCB (see below).
 
 ## Breakout Pins
 
-![NEO-M8T_FeatherWing_BreakoutPins](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_BreakoutPins.jpg)
+![NEO-M8T_FeatherWing_BreakoutPins](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_BreakoutPins.JPG)
 
 **GPS Reset** is connected to the NEO-M8T reset pin. You can reset the NEO-M8T by pulling this pin low. If you want to reset both the Feather _and_ the NEO-M8T via the reset button, short the GRESET split pad on the rear of the PCB.
 Note that pulling GPS Reset low does not put the NEO-M8T into a low power state, you'll want to disable it instead (see En below).
 
-![NEO-M8T_FeatherWing_GReset](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_GReset.jpg)
+![NEO-M8T_FeatherWing_GReset](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_GReset.JPG)
 
 **INT** is connected to the NEO-M8T EXTINT external interrupt pin. It can be used for control of the receiver or for aiding. See the u-blox documentation links below for further details.
 
@@ -96,7 +96,7 @@ Thus it may be used as a low frequency time synchronization pulse or as a high f
 
 TP is also connected to an LED via a buffer transistor. By default it will flash once per second once the receiver is synchronised to GNSS time.
 
-![NEO-M8T_FeatherWing_TPLED](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_TPLED.jpg)
+![NEO-M8T_FeatherWing_TPLED](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_TPLED.JPG)
 
 **En** is a true 'power disable' control line you can use to completely cut power to the NEO-M8T. This is good if you need to run at ultra-low-power modes. By default this is pulled low (enabled). So pull high (to 3V) to disable the NEO-M8T.
 
@@ -107,15 +107,15 @@ Like the Ultimate GPS FeatherWing, the NEO-M8T FeatherWing includes a holder for
 If you don't want to use the backup battery, you can instead draw backup power from the 3V pin by shorting the 3V BACKUP split pad. But be careful! Only do this if you **won't** be using the backup battery.
 If you install the battery _and_ have the split pad shorted **BAD THINGS WILL HAPPEN!** You might want to put some tape over the battery holder if you have shorted the split pad.
 
-![NEO-M8T_FeatherWing_BackupTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_BackupTop.jpg)
+![NEO-M8T_FeatherWing_BackupTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_BackupTop.JPG)
 
-![NEO-M8T_FeatherWing_BackupBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_BackupBottom.jpg)
+![NEO-M8T_FeatherWing_BackupBottom](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_BackupBottom.JPG)
 
 ## Antenna
 
 The NEO-M8T needs to be connected to an external antenna via a uFL connector. 3V power for an active antenna is provided.
 
-![NEO-M8T_FeatherWing_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Antenna.jpg)
+![NEO-M8T_FeatherWing_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Antenna.JPG)
 
 ## Serial Protocol
 
