@@ -4,7 +4,7 @@
 // https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing
 
 // ** Changes the NEO-M8T Baud rate from 9600 to 115200 **
-// (To allow e.g. RAWX logging)
+// (to allow fast RAWX logging)
 
 // Designed to run on the Adafruit Feather M0 Adalogger
 // https://www.adafruit.com/product/2796
