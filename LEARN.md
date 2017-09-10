@@ -152,6 +152,8 @@ If the power is removed or the board is reset before the stop button is pressed,
 
 Connect a normally-open push-to-close switch between swPin and GND. By default, swPin is Digital Pin 15 (0.2" away from the GND pin on the Adalogger). The pin can be changed by editing the code.
 
+![NEO-M8T_FeatherWing_Adalogger_StopSwitch](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Adalogger_StopSwitch.JPG)
+
 By default, RAWX data is logged every 250 msec (4Hz). This can be slowed down by selecting an alternate CFG-RATE message.
 
 By default, the code will log raw measurements from GPS + Galileo + GLONASS. This can be changed to GPS + Galileo + BeiDou by commenting out the line which says _#define GLONASS_
