@@ -5,6 +5,10 @@ It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for po
 
 ![NEO-M8T_FeatherWing](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing.JPG)
 
+![NEO-M8T_FeatherWing_Adalogger_1](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Adalogger_1.JPG)
+
+![NEO-M8T_FeatherWing_Adalogger_2](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Adalogger_2.JPG)
+
 See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/NEO-M8T_GNSS_FeatherWing.pdf) for the schematic, layout and Bill Of Materials.
 
 The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design files.
@@ -150,14 +154,16 @@ By default, the code will use the static navigation mode. The chosen mobile (rov
 
 You will need to increase the size of the serial buffer to avoid data overruns while data is being written to the SD card. See this post by MartinL:
 - https://forum.arduino.cc/index.php?topic=365220.0
-For the Adafruit Feather M0 Adalogger (SAMD):
 
-Under Windows, edit:
+For the Adafruit Feather M0 Adalogger (SAMD), under Windows, edit:
 - C:\Users\ ...your_user... \AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.0.19\cores\arduino\RingBuffer.h
+
 and change:
 - #define SERIAL_BUFFER_SIZE 164
+
 to:
 - #define SERIAL_BUFFER_SIZE 1024
+
 Check the reported freeMemory before and after to make sure the change has been successful. (You should find that you've lost twice as much memory as expected!)
 
 The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Flaga's MemoryFree. See below for the download links.
@@ -166,15 +172,17 @@ The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Fl
 
 To log the RAWX data to file on a PC:
 - The [UBX_Echo](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/UBX_Echo) directory contains Arduino code for the Adalogger which will change the NEO-M8T Baud rate to 115200 and then echo all data to the PC.
-- [NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is Python code which logs the RAWX data to file on a PC.
+- [NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is Python code which configures the NEO-M8T and then logs the RAWX data to file on a PC.
 - [UBX_Checker](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/UBX_Checker.py) is Python code which can be used to check the integrity of the RAWX file (to make sure no data has been lost).
+
+Hidden in [NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is code which calculates the UBX message checksums.
 
 ## Precise Positioning Resources
 
 Useful precise positioning resources can be found at:
+- https://rtklibexplorer.wordpress.com
 - http://www.rtklib.com
 - https://github.com/tomojitakasu/RTKLIB
-- https://rtklibexplorer.wordpress.com
 
 ## Datasheets
 
