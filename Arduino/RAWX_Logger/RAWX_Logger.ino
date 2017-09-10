@@ -13,6 +13,16 @@
 // Choose a good quality SD card. Some cheap cards can't handle the write rate.
 // Ensure the card is formatted as FAT32.
 
+// You need to enlarge the serial receive buffer to avoid buffer
+// overruns while data is being written to the SD card.
+// For the Adafruit Feather M0 Adalogger (SAMD):
+// See this post by MartinL: https://forum.arduino.cc/index.php?topic=365220.0
+// Under Windows, edit: C:\Users\ ...your_user... \AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.0.19\cores\arduino\RingBuffer.h
+// and change: #define SERIAL_BUFFER_SIZE 164
+// to:         #define SERIAL_BUFFER_SIZE 1024
+// Check the reported freeMemory before and after to make sure the change has been successful
+// (You should find that you've lost twice as much memory as expected!)
+
 // Define if this is the static base logger
 #define STATIC // Comment this line out for the mobile rover logger
 
@@ -54,11 +64,16 @@ SdFat sd;
 SdFile rawx_dataFile;
 char rawx_filename[] = "20000000/000000.bin";
 char dirname[] = "20000000";
+long bytes_written = 0;
 
 // Define 'packet' size for SD card writes
 #define SDpacket 512
 byte serBuffer[SDpacket];
 int bufferPointer = 0;
+
+// Michael P. Flaga's MemoryFree:
+// https://github.com/mpflaga/Arduino-MemoryFree
+#include <MemoryFree.h>;
 
 // Battery voltage
 float vbat;
@@ -188,6 +203,9 @@ void setup()
   Serial.println("Red LED Flash = SD Write");
   Serial.println("Continuous Red indicates a problem or that logging has been stopped");
 
+  Serial.print("Free Memory: ");
+  Serial.println(freeMemory(), DEC);  // print how much RAM is available.
+  
   Serial.println("Initializing GNSS...");
 
   // u-blox M8 Init
@@ -248,8 +266,7 @@ void setup()
   // Initialise SD card
   Serial.println("Initializing SD card...");
   // See if the SD card is present and can be initialized
-  // Careful! Speeds higher than 20MHz seem to cause data loss!
-  if (!sd.begin(cardSelect, SD_SCK_MHZ(15))) {
+  if (!sd.begin(cardSelect, SD_SCK_MHZ(10))) { // 10MHz seems more than fast enough
     Serial.println("Panic!! SD Card Init failed, or not present!");
     // don't do anything more:
     while(1);
@@ -423,10 +440,13 @@ void loop() // run over and over again
           digitalWrite(RedLED, HIGH); // flash red LED
           rawx_dataFile.write(serBuffer, SDpacket);
           //rawx_dataFile.flush();
+          bytes_written += SDpacket;
 #ifdef DEBUG
           Serial.print("SD Write: ");
           Serial.print(SDpacket);
           Serial.println(" Bytes");
+          Serial.print(bytes_written);
+          Serial.println(" Bytes written so far");
 #endif
           digitalWrite(RedLED, LOW);
         }
@@ -438,6 +458,7 @@ void loop() // run over and over again
         if ((digitalRead(swPin) == LOW) or (vbat < 3.55)) {
           if (bufferPointer > 0) {
             rawx_dataFile.write(serBuffer, bufferPointer); // Write remaining data
+            bytes_written += bufferPointer;
 #ifdef DEBUG
             Serial.print("Penultimate SD Write: ");
             Serial.print(bufferPointer);
@@ -455,9 +476,7 @@ void loop() // run over and over again
     case close_file: {
       Serial1.write(setRAWXoff, len_setRAWX); // Disable messages
       int waitcount = 0;
-#ifdef DEBUG
       int extraBytes = 0;
-#endif
       // leave 10 bytes in the buffer as this should be the message acknowledgement
       while (waitcount < 1000) { // Wait for ~1 sec for residual data
         if (Serial1.available() > 10) {
@@ -465,9 +484,7 @@ void loop() // run over and over again
           digitalWrite(RedLED, HIGH); // flash red LED
           rawx_dataFile.write(c);
           digitalWrite(RedLED, LOW);
-#ifdef DEBUG
           extraBytes++;
-#endif
         }
         else {
           waitcount++;
@@ -481,9 +498,15 @@ void loop() // run over and over again
         Serial.println(" Bytes");
       }
 #endif
+      bytes_written += extraBytes;
       rawx_dataFile.close(); // close the file
       digitalWrite(RedLED, HIGH); // leave the red led on
       loop_step = loop_end;
+      uint32_t filesize = rawx_dataFile.fileSize(); // Get the file size
+      Serial.print("File size is ");
+      Serial.println(filesize);
+      Serial.print("File size should be ");
+      Serial.println(bytes_written);
       Serial.println("File closed!");
       Serial.println("Waiting for reset...");
     }

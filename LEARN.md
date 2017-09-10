@@ -68,7 +68,7 @@ The NEO-M8T SPI interface can be enabled by shorting the DSEL split pad:
 - TX becomes SPI MISO
 - RX becomes SPI MOSI
 - You may need to remove the SCL and SDA pull-up resistors (R5 & R6)
-- You will need to cut the TX and RX split pads to isolate the Adalogger Serial pins
+- You will need to cut the TX and RX jumpers to isolate the Adalogger Serial pins
 
 ![NEO-M8T_FeatherWing_DSEL](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_DSEL.JPG)
 
@@ -80,7 +80,7 @@ The NEO-M8T SPI interface can be enabled by shorting the DSEL split pad:
 
 There is a small button that will connect the microcontroller RESET pin to ground for resetting it. Handy to restart the Feather. Note that this is not connected to NEO-M8T reset unless you short the GRESET split pad on the rear of the PCB (see below).
 
-## Breakout Pins
+## GNSS Breakout Pins
 
 ![NEO-M8T_FeatherWing_BreakoutPins](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_BreakoutPins.JPG)
 
@@ -142,17 +142,32 @@ If the power is removed or the board is reset before the stop button is pressed,
 
 Connect a normally-open push-to-close switch between swPin and GND. By default, swPin is Digital Pin 15 (0.2" away from the GND pin on the Adalogger). The pin can be changed by editing the code.
 
-By default, RAWX data is logged at 4Hz. This can be slowed down by selecting an alternate CFG-RATE message.
+By default, RAWX data is logged every 250 msec (4Hz). This can be slowed down by selecting an alternate CFG-RATE message.
 
 By default, the code will log raw measurements from GPS + Galileo + GLONASS. This can be changed to GPS + Galileo + BeiDou by commenting out the line which says _#define GLONASS_
 
 By default, the code will use the static navigation mode. The chosen mobile (roving) mode can be selected by commenting out the line which says _#define STATIC_
 
+You will need to increase the size of the serial buffer to avoid data overruns while data is being written to the SD card. See this post by MartinL:
+- https://forum.arduino.cc/index.php?topic=365220.0
+For the Adafruit Feather M0 Adalogger (SAMD):
+
+Under Windows, edit:
+- C:\Users\ ...your_user... \AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.0.19\cores\arduino\RingBuffer.h
+and change:
+- #define SERIAL_BUFFER_SIZE 164
+to:
+- #define SERIAL_BUFFER_SIZE 1024
+Check the reported freeMemory before and after to make sure the change has been successful. (You should find that you've lost twice as much memory as expected!)
+
+The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Flaga's MemoryFree. See below for the download links.
+
 ## PC Logging
 
 To log the RAWX data to file on a PC:
-- The [UBX_Echo](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/UBX_Echo) directory contains Arduino code to change the NEO-M8T Baud rate to 115200 and then echo all data to the PC.
+- The [UBX_Echo](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/UBX_Echo) directory contains Arduino code for the Adalogger which will change the NEO-M8T Baud rate to 115200 and then echo all data to the PC.
 - [NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is Python code which logs the RAWX data to file on a PC.
+- [UBX_Checker](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/UBX_Checker.py) is Python code which can be used to check the integrity of the RAWX file (to make sure no data has been lost).
 
 ## Precise Positioning Resources
 
@@ -174,13 +189,13 @@ Useful documentation about the NEO-M8T and its protocol specification can be fou
 
 - https://github.com/adafruit/Adafruit-GPS-Library/
 
-## Mikal Hart's TinyGPS
-
-- https://github.com/mikalhart/TinyGPS
-
 ## Bill Greiman's SdFat
 
 - https://github.com/greiman/SdFat
+
+## Michael P. Flaga's MemoryFree
+
+- https://github.com/mpflaga/Arduino-MemoryFree
 
 ## Acknowledgements
 
