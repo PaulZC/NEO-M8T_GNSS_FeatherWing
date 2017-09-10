@@ -17,7 +17,7 @@ The [RAWX_Logger](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master
 - https://www.adafruit.com/products/2796
 - https://learn.adafruit.com/adafruit-feather-m0-adalogger
 
-A description of how to use RTKLIB to post-process the RAWX data will be added soon. For now, please refer to the Precise Positioning Resources below.
+A description of how to use RTKLIB to post-process the RAWX data will be added soon. For now, please refer to the [Precise Positioning Resources](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/LEARN.md#precise-positioning-resources) below.
 
 This guide concentrates on the differences between the NEO-M8T FeatherWing and the Adafruit Ultimate GPS FeatherWing. Please refer to Lady Ada's excellent documentation to get started with the Feather family and GPS:
 - https://www.adafruit.com/product/3133
@@ -43,7 +43,7 @@ If you want to completely power down the Adalogger _and_ the NEO-M8T, you can do
 
 The NEO-M8T FeatherWing, like the Ultimate GPS FeatherWing, can communicate over UART serial. It sends ASCII NMEA sentences from the TX pin to the microcontroller RX pin and can be controlled to change its data output from the microcontroller TX pin. Logic level is 3V for both.
 
-The u-box M8 chipset also supports much more comprehensive UBX binary format messages (see below).
+The u-box M8 chipset also supports much more comprehensive UBX binary format messages (see [Serial Protocol](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/LEARN.md#serial-protocol) below).
 
 The baud rate by default is 9600 baud, but you can configure the module to use a different baud rate if desired. For RAWX logging you will need to use at least 115200 baud.
 
@@ -93,7 +93,7 @@ Note that pulling GPS Reset low does not put the NEO-M8T into a low power state,
 
 ![NEO-M8T_FeatherWing_GReset](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_GReset.JPG)
 
-**INT** is connected to the NEO-M8T EXTINT external interrupt pin. It can be used for control of the receiver or for aiding. See the u-blox documentation links below for further details.
+**INT** is connected to the NEO-M8T EXTINT external interrupt pin. It can be used for control of the receiver or for aiding. See the [u-blox documentation links](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/LEARN.md#datasheets) below for further details.
 
 **TP** is connected to the NEO-M8T TP time pulse pin. It can be used to output pulse trains synchronized with GPS or UTC time grid with intervals configurable over a wide frequency range.
 Thus it may be used as a low frequency time synchronization pulse or as a high frequency reference signal (up to 10 MHz). By default, the time pulse signal is configured to 1 pulse per second.
