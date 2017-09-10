@@ -104,6 +104,12 @@ TP is also connected to an LED via a buffer transistor. By default it will flash
 
 **En** is a true 'power disable' control line you can use to completely cut power to the NEO-M8T. This is good if you need to run at ultra-low-power modes. By default this is pulled low (enabled). So pull high (to 3V) to disable the NEO-M8T.
 
+## SAFEBOOT
+
+![NEO-M8T_FeatherWing_SafeBoot](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_SafeBoot.JPG)
+
+The NEO-M8T SAFEBOOT pin is broken out on a test pad on the rear of the PCB. You will need access to this to update the firmware.
+
 ## Battery Backup
 
 Like the Ultimate GPS FeatherWing, the NEO-M8T FeatherWing includes a holder for a CR1220 back-up battery which will keep the NEO-M8T's internal clock going if the power is removed or disabled, providing a much quicker "warm start" when the power is reconnected.
