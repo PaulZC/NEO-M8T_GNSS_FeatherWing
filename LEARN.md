@@ -35,6 +35,8 @@ If you want to completely power down the Adalogger _and_ the NEO-M8T, you can do
 
 ![NEO-M8T_FeatherWing_EN](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_EN.JPG)
 
+![NEO-M8T_FeatherWing_ENswitch](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_ENswitch.JPG)
+
 ## Serial Data Pins
 
 ![NEO-M8T_FeatherWing_TxRxTop](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_TxRxTop.JPG)
@@ -178,10 +180,10 @@ The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Fl
 
 ## PC Logging
 
-To log the RAWX data to file on a PC:
+To log the RAWX data to file on a PC (instead of the Adalogger SD card):
 - The [UBX_Echo](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/UBX_Echo) directory contains Arduino code for the Adalogger which will change the NEO-M8T Baud rate to 115200 and then echo all data to the PC.
 - [NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is Python code which configures the NEO-M8T and then logs the RAWX data to file on a PC.
-- [UBX_Checker](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/UBX_Checker.py) is Python code which can be used to check the integrity of the RAWX file (to make sure no data has been lost).
+- [UBX_Checker.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/UBX_Checker.py) is Python code which can be used to check the integrity of the RAWX file (to make sure no data has been lost).
 
 Hidden in [NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/NEO-M8T_GNSS_RAWX_Logger.py) is code which calculates the UBX message checksums.
 
