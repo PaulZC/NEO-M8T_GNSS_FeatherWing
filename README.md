@@ -7,6 +7,8 @@ It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for po
 
 **See [LEARN.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/LEARN.md) for more details.**
 
+**[POST_PROCESS.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/POST_PROCESS.md) contains very preliminary results of an initial attempt at post-process precise positioning using [rtklibexplorer's demo service](https://rtklibexplorer.wordpress.com/2017/08/25/online-rtklib-post-processing-demo-service/).**
+
 See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/NEO-M8T_GNSS_FeatherWing.pdf) for the schematic, layout and Bill Of Materials.
 
 The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design files.
