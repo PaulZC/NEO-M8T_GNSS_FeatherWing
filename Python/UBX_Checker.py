@@ -23,7 +23,7 @@ for root, dirs, files in os.walk("."):
     if len(files) > 0:
         if root == ".":
             for afile in files:
-                if afile[-4:] == '.BIN':
+                if afile[-4:] == '.bin':
                     if firstfile == '': firstfile = afile
 
 if filename == '': filename = raw_input('Enter the bin filename (default: ' + firstfile + '): ') # Get the filename
@@ -39,6 +39,7 @@ except:
 
 processed = 0
 messages = 0
+longest = 0
 
 try:
     while True:
@@ -82,6 +83,7 @@ try:
             #raise Exception('Checksum failure!')
         processed += 2
         messages += 1
+        if (length > longest): longest = length
 
 finally:
     fi.close()
@@ -90,4 +92,5 @@ finally:
     print 'File size was',filesize
     if (processed != filesize):
         print 'FILE SIZE MISMATCH!!'
+    print 'Longest message was %i data bytes'%longest
     print 'Bye!'

@@ -1,4 +1,4 @@
-// Logs GNSS RAWX data from u-blox NEO-M8T to SD card
+// Logs RXM-RAWX, RXM-SFRBX and TIM-TM2 data from u-blox NEO-M8T GNSS to SD card
 
 // This code is written for the Adalogger M0 Feather
 // https://www.adafruit.com/products/2796
@@ -167,6 +167,8 @@ static const uint8_t setRATE[] = { 0xb5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xfa, 0x0
 //static const uint8_t setRATE[] = { 0xb5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xf4, 0x01, 0x01, 0x00, 0x00, 0x00, 0x0a, 0x75 };
 // Set Navigation/Measurement Rate (CFG-RATE): set measRate to 1000msec; align to UTC time
 static const uint8_t setRATE_1Hz[] = { 0xb5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xe8, 0x03, 0x01, 0x00, 0x00, 0x00, 0x00, 0x37 };
+// Set Navigation/Measurement Rate (CFG-RATE): set measRate to 10000msec; align to UTC time
+static const uint8_t setRATE_10s[] = { 0xb5, 0x62, 0x06, 0x08, 0x06, 0x00, 0x10, 0x27, 0x01, 0x00, 0x00, 0x00, 0x4c, 0xdb };
 static const uint8_t len_setRATE = 14;
 
 // Set RXM-RAWX Message Rate: once per measRate
@@ -174,6 +176,18 @@ static const uint8_t setRAWX[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x02, 0x1
 // Set RXM-RAWX Message Rate: off
 static const uint8_t setRAWXoff[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x02, 0x15, 0x00, 0x21, 0x6f };
 static const int len_setRAWX = 11;
+
+// Set RXM-SFRBX Message Rate: once per measRate
+static const uint8_t setSFRBX[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x02, 0x13, 0x01, 0x20, 0x6c };
+// Set RXM-SFRBX Message Rate: off
+static const uint8_t setSFRBXoff[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x02, 0x13, 0x00, 0x1f, 0x6b };
+static const int len_setSFRBX = 11;
+
+// Set TIM-TM2 Message Rate: once per measRate
+static const uint8_t setTIM[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x0d, 0x03, 0x01, 0x1b, 0x6d };
+// Set TIM-TM2 Message Rate: off
+static const uint8_t setTIMoff[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x0d, 0x03, 0x00, 0x1a, 0x6c };
+static const int len_setTIM = 11;
 
 void setup()
 {
@@ -212,7 +226,7 @@ void setup()
   // 9600 is the default baud rate for u-blox M8
   GPS.begin(9600);
   // Change the NEO-M8T UART Baud rate
-  // (DDC (I2C) and SPI rates can be set independantly if required)
+  // (DDC (I2C) and SPI rates can be set independently if required)
   // Allow both NMEA and UBX protocols (but not RTCM)
   // Disable autobauding
   GPS.sendCommand("$PUBX,41,1,0003,0003,115200,0*1C"); // 115200 baud
@@ -223,6 +237,10 @@ void setup()
   GPS.begin(115200); // 115200 baud
   //GPS.begin(230400); // 230400 baud
   Serial1.write(setRAWXoff, len_setRAWX); // Disable RAWX messages
+  delay(100);
+  Serial1.write(setSFRBXoff, len_setSFRBX); // Disable SFRBX messages
+  delay(100);
+  Serial1.write(setTIMoff, len_setTIM); // Disable TIM messages
   delay(100);
   // Disable all NMEA messages except GGA and RMC
   GPS.sendCommand("$PUBX,40,GLL,0,0,0,0*5C"); // Disable GLL
@@ -255,7 +273,7 @@ void setup()
   Serial1.write(setRATE_1Hz, len_setRATE); // Set Navigation/Measurement Rate to 1Hz
   delay(100);
   Serial1.write(setGNSS, len_setGNSS); // Set GNSS - causes a reset of the M8!
-  delay(1100);
+  delay(2100);
   while(Serial1.available()){Serial1.read();} // Flush RX buffer
 
   Serial.println("GNSS initialized!");
@@ -418,7 +436,9 @@ void loop() // run over and over again
           delay(1100); // Wait
           while(Serial1.available()){Serial1.read();} // Flush RX buffer
           Serial1.write(setRAWX, len_setRAWX); // Set RXM-RAWX message rate
-          while (Serial1.available() < 10) ; // Wait for UBX acknowledgement (10 bytes)
+          Serial1.write(setSFRBX, len_setSFRBX); // Set RXM-SFRBX message rate
+          Serial1.write(setTIM, len_setTIM); // Set TIM-TM2 message rate
+          while (Serial1.available() < 30) ; // Wait for UBX acknowledgements (3x10 bytes)
           for (int x=0;x<10;x++) {
             Serial1.read(); // Clear out the acknowledgement
           }
@@ -475,11 +495,13 @@ void loop() // run over and over again
     // Disable RAWX messages, save any residual data and close the file
     case close_file: {
       Serial1.write(setRAWXoff, len_setRAWX); // Disable messages
+      Serial1.write(setSFRBXoff, len_setSFRBX); // Disable messages
+      Serial1.write(setTIMoff, len_setTIM); // Disable messages
       int waitcount = 0;
       int extraBytes = 0;
-      // leave 10 bytes in the buffer as this should be the message acknowledgement
+      // leave 30 bytes in the buffer as this should be the three message acknowledgements
       while (waitcount < 1000) { // Wait for ~1 sec for residual data
-        if (Serial1.available() > 10) {
+        if (Serial1.available() > 30) {
           byte c = Serial1.read();
           digitalWrite(RedLED, HIGH); // flash red LED
           rawx_dataFile.write(c);
