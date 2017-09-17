@@ -17,6 +17,7 @@ and for offering his demo service for free. What a guy.
 The Base Logger is a NEO-M8T GNSS FeatherWing mounted on an Adafruit Feather M0 Adalogger, connected to the GPS-half of a
 [Iridium Beam Whip Dual Mode Antenna RST706](https://www.beamcommunications.com/products/70-iridium-beam-whip-dual-mode-antenna)
 which is mounted on the study roof with a reasonable view of the sky.
+
 ![Post_Process_Test_Base_1.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/Post_Process_Test_Base_1.JPG)
 ![Post_Process_Test_Base_2.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/Post_Process_Test_Base_2.JPG)
 
@@ -26,6 +27,7 @@ The NEO-M8T is set to "Static" navigation mode by the Arduino code. See [LEARN.m
 
 The Rover Logger is a second NEO-M8T GNSS FeatherWing mounted on another Adafruit Feather M0 Adalogger, powered by a 1000mAh LiPo battery,
 connected to a passive helical antenna **with no ground plane**. The logger assembly is then mounted on the end of a rotating arm whirligig.
+
 ![Post_Process_Test_Mobile_2.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/Post_Process_Test_Mobile_2.JPG)
 ![Post_Process_Test_Mobile_1.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/Post_Process_Test_Mobile_1.JPG)
 
@@ -53,12 +55,15 @@ I attached these files to an email, with the subject "rtklib demo", and sent it 
 Minutes later the analysis came back:
 
 Base Observations:
+
 ![plot_obs_base.jpg](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/plot_obs_base.jpg)
 
 Rover Observations:
+
 ![plot_obs_rover.jpg](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/plot_obs_rover.jpg)
 
 Position Solution computed with the demo5 B28b version of RTKLIB. Yellow represents a float solution and green is a fixed solution:
+
 ![plot_demo5.jpg](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/plot_demo5.jpg)
 
 Clearly I've got some more work to do, but that certainly looks like a 1m radius circle to me!
