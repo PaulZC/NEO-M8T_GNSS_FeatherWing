@@ -15,6 +15,24 @@
 import serial
 import time
 import sys
+import signal
+import logging
+
+# https://stackoverflow.com/questions/842557/how-to-prevent-a-block-of-code-from-being-interrupted-by-keyboardinterrupt-in-py
+class DelayedKeyboardInterrupt(object):
+    def __enter__(self):
+        self.signal_received = False
+        self.old_handler = signal.getsignal(signal.SIGINT)
+        signal.signal(signal.SIGINT, self.handler)
+
+    def handler(self, sig, frame):
+        self.signal_received = (sig, frame)
+        logging.debug('SIGINT received. Delaying KeyboardInterrupt.')
+
+    def __exit__(self, type, value, traceback):
+        signal.signal(signal.SIGINT, self.old_handler)
+        if self.signal_received:
+            self.old_handler(*self.signal_received)
 
 class UBXport(object):
 
@@ -41,10 +59,11 @@ class UBXport(object):
         print 'Sending:'
         print ''.join(a[:-2])
         for c in a: self.ser1.write(c)
-        print 'Received:'
-        for x in range(wait):
-            rx = up.ser1.read(biglen)
-            if rx != '': sys.stdout.write(rx)
+        if wait > 0:
+            print 'Received:'
+            for x in range(wait):
+                RX = up.ser1.read(biglen)
+                if RX != '': sys.stdout.write(RX)
 
     def sendUBX(self,msg,wait=10,biglen=200):
         ''' Send a message in UBX format (adding the checksum) and wait for a reply '''
@@ -60,11 +79,14 @@ class UBXport(object):
         print 'Sending:'
         print "\\x" + "\\x".join("{:02x}".format(ord(c)) for c in a)
         for c in a: self.ser1.write(c)
-        print 'Received:'
-        for x in range(wait):
-            rx = self.ser1.read(biglen)
-            if rx != '':
-                print "\\x" + "\\x".join("{:02x}".format(ord(c)) for c in rx)
+        if wait > 0:
+            print 'Received:'
+            for x in range(wait):
+                RX = self.ser1.read(biglen)
+                if RX != '':
+                    print "\\x" + "\\x".join("{:02x}".format(ord(c)) for c in RX)
+
+rx = ''
     
 try:
     print 'NEO-M8T GNSS RAWX Logger'
@@ -134,9 +156,13 @@ try:
     # Set GNSS: GPS + QZSS + GLONASS (Default on NEO-M8T)
     #up.sendUBX("\xb5\x62\x06\x3e\x3c\x00\x00\x20\x20\x07\x00\x08\x10\x00\x01\x00\x01\x01\x01\x01\x03\x00\x00\x00\x01\x01\x02\x04\x08\x00\x00\x00\x01\x01\x03\x08\x10\x00\x00\x00\x01\x01\x04\x00\x08\x00\x00\x00\x01\x03\x05\x00\x03\x00\x01\x00\x01\x05\x06\x08\x0e\x00\x01\x00\x01\x01",30)
     # Set GNSS: GPS + Galileo + GLONASS
-    up.sendUBX("\xb5\x62\x06\x3e\x3c\x00\x00\x20\x20\x07\x00\x08\x10\x00\x01\x00\x01\x01\x01\x01\x03\x00\x00\x00\x01\x01\x02\x04\x08\x00\x01\x00\x01\x01\x03\x08\x10\x00\x00\x00\x01\x01\x04\x00\x08\x00\x00\x00\x01\x03\x05\x00\x03\x00\x00\x00\x01\x05\x06\x08\x0e\x00\x01\x00\x01\x01",30)
+    #up.sendUBX("\xb5\x62\x06\x3e\x3c\x00\x00\x20\x20\x07\x00\x08\x10\x00\x01\x00\x01\x01\x01\x01\x03\x00\x00\x00\x01\x01\x02\x04\x08\x00\x01\x00\x01\x01\x03\x08\x10\x00\x00\x00\x01\x01\x04\x00\x08\x00\x00\x00\x01\x03\x05\x00\x03\x00\x00\x00\x01\x05\x06\x08\x0e\x00\x01\x00\x01\x01",30)
     # Set GNSS: GPS + Galileo + BeiDou
     #up.sendUBX("\xb5\x62\x06\x3e\x3c\x00\x00\x20\x20\x07\x00\x08\x10\x00\x01\x00\x01\x01\x01\x01\x03\x00\x00\x00\x01\x01\x02\x04\x08\x00\x01\x00\x01\x01\x03\x08\x10\x00\x01\x00\x01\x01\x04\x00\x08\x00\x00\x00\x01\x03\x05\x00\x03\x00\x00\x00\x01\x05\x06\x08\x0e\x00\x00\x00\x01\x01",30)
+    # Set GNSS: GPS + Galileo + GLONASS + SBAS
+    up.sendUBX("\xb5\x62\x06\x3e\x3c\x00\x00\x20\x20\x07\x00\x08\x10\x00\x01\x00\x01\x01\x01\x01\x03\x00\x01\x00\x01\x01\x02\x04\x08\x00\x01\x00\x01\x01\x03\x08\x10\x00\x00\x00\x01\x01\x04\x00\x08\x00\x00\x00\x01\x03\x05\x00\x03\x00\x00\x00\x01\x05\x06\x08\x0e\x00\x01\x00\x01\x01",30)
+    # Set GNSS: GPS + Galileo + BeiDou + SBAS
+    #up.sendUBX("\xb5\x62\x06\x3e\x3c\x00\x00\x20\x20\x07\x00\x08\x10\x00\x01\x00\x01\x01\x01\x01\x03\x00\x01\x00\x01\x01\x02\x04\x08\x00\x01\x00\x01\x01\x03\x08\x10\x00\x01\x00\x01\x01\x04\x00\x08\x00\x00\x00\x01\x03\x05\x00\x03\x00\x00\x00\x01\x05\x06\x08\x0e\x00\x00\x00\x01\x01",30)
 
     # Change Navigation/Measurement Rate
     print
@@ -155,6 +181,8 @@ try:
     # Set CFG-RATE: set measRate to 10000msec; align to UTC time
     #up.sendUBX("\xb5\x62\x06\x08\x06\x00\x10\x27\x01\x00\x00\x00")
 
+    # Send the next two messages without waiting for an acknowledgement
+
     # Set RXM-RAWX message rate (once per measRate)
     print
     print 'Setting RXM-RAWX Message Rate'
@@ -162,10 +190,10 @@ try:
     #up.sendUBX("\xb5\x62\x06\x01\x02\x00\x02\x15")
     # Default:   \xb5\x62\x06\x01\x08\x00\x02\x15\x00\x00\x00\x00\x00\x00
     # Set RXM-RAWX send rate
-    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x15\x01",1,10) # current port
-    #up.sendUBX("\xb5\x62\x06\x01\x08\x00\x02\x15\x00\x01\x00\x00\x00\x00",1,10) # six ports
+    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x15\x01",0) # current port
+    #up.sendUBX("\xb5\x62\x06\x01\x08\x00\x02\x15\x00\x01\x00\x00\x00\x00",0) # six ports
     # Disable RXM-RAWX messages
-    #up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x15\x00",1,10) # current port
+    #up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x15\x00",0) # current port
 
     # Set RXM-SFRBX message rate (once per measRate)
     print
@@ -174,10 +202,12 @@ try:
     #up.sendUBX("\xb5\x62\x06\x01\x02\x00\x02\x13")
     # Default:   \xb5\x62\x06\x01\x08\x00\x02\x13\x00\x00\x00\x00\x00\x00
     # Set RXM-SFRBX send rate
-    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x13\x01",1,10) # current port
-    #up.sendUBX("\xb5\x62\x06\x01\x08\x00\x02\x13\x00\x01\x00\x00\x00\x00",1,10) # six ports
+    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x13\x01",0) # current port
+    #up.sendUBX("\xb5\x62\x06\x01\x08\x00\x02\x13\x00\x01\x00\x00\x00\x00",0) # six ports
     # Disable RXM-SFRBX messages
-    #up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x13\x00",1,10) # current port
+    #up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x13\x00",0) # current port
+
+    # Use this message to mop up the acknowledgements for all three
 
     # Set TIM-TM2 message rate (once per measRate)
     print
@@ -186,10 +216,10 @@ try:
     #up.sendUBX("\xb5\x62\x06\x01\x02\x00\x0d\x03")
     # Default:   \xb5\x62\x06\x01\x08\x00\x0d\x03\x00\x00\x00\x00\x00\x00
     # Set TIM-TM2 send rate
-    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x0d\x03\x01",1,10) # current port
-    #up.sendUBX("\xb5\x62\x06\x01\x08\x00\x0d\x03\x00\x01\x00\x00\x00\x00",1,10) # six ports
+    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x0d\x03\x01",1,30) # current port
+    #up.sendUBX("\xb5\x62\x06\x01\x08\x00\x0d\x03\x00\x01\x00\x00\x00\x00",1,30) # six ports
     # Disable TIM-TM2 messages
-    #up.sendUBX("\xb5\x62\x06\x01\x03\x00\x0d\x03\x00",1,10) # current port
+    #up.sendUBX("\xb5\x62\x06\x01\x03\x00\x0d\x03\x00",1,30) # current port
 
     start_time = time.time() # Get the time
     tn = time.localtime(start_time) # Extract the time and date as strings
@@ -206,27 +236,57 @@ try:
     fp = open(filename, 'wb') # Create / clear the file
 
     while True:
-        rx = up.ser1.read(200) # Read serial data forcing a timeout
-        if rx != '': # if we got some data:
-            # print it in Python hex syntax (useful for cutting and pasting)
-            rx_str = "\\x" + "\\x".join("{:02x}".format(ord(c)) for c in rx)
-            sys.stdout.write(rx_str)
-            # and write it to the file
-            fp.write(rx)
+        # We don't want KeyboardInterrupt to interrupt this!
+        with DelayedKeyboardInterrupt():
+            rx = up.ser1.read(200) # Read serial data forcing a timeout if required
+            if rx != '': # if we got some data:
+                # write it to the file
+                fp.write(rx)
+                # print it in Python hex syntax (useful for cutting and pasting)
+                rx_str = "\\x" + "\\x".join("{:02x}".format(ord(c)) for c in rx)
+                sys.stdout.write(rx_str)
+        # Let KeyboardInterrupt interrupt now
+        pass
 
 except KeyboardInterrupt:
     print
     print 'CTRL+C received...'
     print
     print 'Disabling messages...'
-    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x15\x00",1,10) # Disable RXM-RAWX
-    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x13\x00",1,10) # Disable RXM-SFRBX
-    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x0d\x03\x00",1,10) # Disable TIM-TM2
-    print
-    print 'Bye!'
+    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x15\x00",0) # Disable RXM-RAWX
+    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x02\x13\x00",0) # Disable RXM-SFRBX
+    up.sendUBX("\xb5\x62\x06\x01\x03\x00\x0d\x03\x00",0) # Disable TIM-TM2
 
+    # Wait ~1sec for any remaining data to arrive and write it to disk
+    # Leave 30 bytes in the receive buffer as these should be the
+    # three x 10 byte acknowledgements from the disable messages
+    nodata = 0
+    while nodata < 1000:
+        buflen = up.ser1.inWaiting() # See if there is any data left to be read
+        if buflen > 30: # if there is data left to be read
+            rx = up.ser1.read(buflen - 30) # read the data
+            # print it in Python hex syntax (useful for cutting and pasting)
+            rx_str = "\\x" + "\\x".join("{:02x}".format(ord(c)) for c in rx)
+            sys.stdout.write(rx_str)
+            # and write it to the file
+            fp.write(rx)
+        else: # there are 0 - 30 bytes waiting
+            time.sleep(0.001)
+            nodata += 1
+    print
+    print "Final receive buffer length should be 30. It was %i."%buflen
+    if buflen > 0:
+        # Print the remaining data without writing it to file
+        rx = up.ser1.read(buflen) # read the data
+        # print it in Python hex syntax (useful for cutting and pasting)
+        rx_str = "\\x" + "\\x".join("{:02x}".format(ord(c)) for c in rx)
+        sys.stdout.write(rx_str)
+           
 finally:
     up.ser1.close() # Close the serial port
     fp.close() # Close the file
+    print
+    print 'Bye!'
+
 
 
