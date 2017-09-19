@@ -159,9 +159,11 @@ Connect a normally-open push-to-close switch between swPin and GND. By default, 
 
 By default, RAWX data is logged every 250 msec (4Hz). This can be slowed down by selecting an alternate CFG-RATE message.
 
-By default, the code will log raw measurements from GPS + Galileo + GLONASS. This can be changed to GPS + Galileo + BeiDou by commenting out the line which says _#define GLONASS_
+By default, the code will log raw measurements from GPS + Galileo + GLONASS + SBAS. This can be changed to GPS + Galileo + BeiDou + SBAS by commenting out the line which says _#define GLONASS_
 
 By default, the code will use the static navigation mode. The chosen mobile (roving) mode can be selected by commenting out the line which says _#define STATIC_
+
+The code now calculates the UBX checksum bytes for you, so it is much easier to make changes to the GNSS configuration. See sendUBX() in the code.
 
 You will need to increase the size of the serial buffer to avoid data overruns while data is being written to the SD card. See this post by MartinL:
 - https://forum.arduino.cc/index.php?topic=365220.0
