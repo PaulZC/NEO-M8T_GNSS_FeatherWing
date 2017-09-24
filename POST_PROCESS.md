@@ -1,6 +1,6 @@
 # Initial attempts at Post-Process Precise Positioning using the NEO-M8T GNSS FeatherWing
 
-## 2017-09-23
+## 2017-09-24
 
 Following on from [last week's update](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/POST_PROCESS.md#2017-09-17),
 I decided to download [rtkexplorer's demo5 version of RTKLIB](http://rtkexplorer.com/downloads/rtklib-code/) so I could run RTKLIB locally on my machine
@@ -9,18 +9,18 @@ I downloaded version B28a, but I see that version B29 has just been released.
 
 I'm using Windows 10 Pro 64-bit and the executables ran straight out of the box.
 
-To start, I used RTKCONV to convert the raw u-blox files from the base and rover loggers into RINEX format:
+To start, I used RTKCONV (rtkconv.exe) to convert the raw u-blox files from the base and rover loggers into RINEX format:
 
 ![rtkconv.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkconv.JPG)
 
 I changed the data format setting to _u-blox_, left the options set to their default settings and then converted first the base data (base_20170917_183829.ubx) and then the rover data (rov_20170917_183928.ubx).
 This created the .nav and .obs files needed by RTKPOST.
 
-Next I ran RTKPOST:
+Next I ran RTKPOST (rtkpost.exe):
 
 ![rtkpost.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost.JPG)
 
-I changed the options to:
+I changed the _Options_ to:
 
 ![rtkpost_options_1.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost_options_1.JPG)
 ![rtkpost_options_2.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost_options_2.JPG)
@@ -39,13 +39,21 @@ So far so good. I then changed the Filter Type setting to _Combined_ so the data
 
 ![rtkpost_options_4.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost_options_4.JPG)
 
-**_Hey presto_** I ended up with this:
+**_Hey presto!_** I ended up with this:
 
 ![rtkpost_plot_combined.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost_plot_combined.JPG)
 
 Now, that really does look like a very clean 1m radius circle. Perfect!
 
-I'm going to try and do a least-squares fit and analysis on the data with Python, but that will have to wait until later...
+Analysing the data using least squares circle fitting shows that the radius is indeed very close to 1m:
+
+![lstsq_1.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/lstsq_1.JPG)
+
+![lstsq_2.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/lstsq_2.JPG)
+
+The Python least squares circle fitting code is experimental and is based extensively on work done by [Miki at Meshlogic](https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/).
+You can find a copy of [CSV_Circle_Fitting.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/CSV_Circle_Fitting.py) in the Python directory.
+You will also need [POS_to_CSV.py](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/Python/POS_to_CSV.py) to convert the .pos file produced by RTKPOST into a simple .csv file containing only the x,y,z ECEF coordinates of data points with a Q of 1.
 
 ## 2017-09-17
 
