@@ -17,7 +17,7 @@ The [RAWX_Logger](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master
 - https://www.adafruit.com/products/2796
 - https://learn.adafruit.com/adafruit-feather-m0-adalogger
 
-[POST_PROCESS.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/POST_PROCESS.md) contains very preliminary results of an initial attempt at post-process precise positioning using [rtklibexplorer's demo service](https://rtklibexplorer.wordpress.com/2017/08/25/online-rtklib-post-processing-demo-service/).
+[POST_PROCESS.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/POST_PROCESS.md) contains results of a first time successful attempt at post-process precise positioning using [rtkexplorer's demo5 version of RTKLIB](http://rtkexplorer.com/downloads/rtklib-code/).
 Please refer to the [Precise Positioning Resources](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/LEARN.md#precise-positioning-resources) for more information.
 
 This guide concentrates on the differences between the NEO-M8T FeatherWing and the Adafruit Ultimate GPS FeatherWing. Please refer to Lady Ada's excellent documentation to get started with the Feather family and GPS:
@@ -194,6 +194,7 @@ Hidden in [NEO-M8T_GNSS_RAWX_Logger.py](https://github.com/PaulZC/NEO-M8T_GNSS_F
 
 Useful precise positioning resources can be found at:
 - https://rtklibexplorer.wordpress.com
+- http://rtkexplorer.com/
 - http://www.rtklib.com
 - https://github.com/tomojitakasu/RTKLIB
 
