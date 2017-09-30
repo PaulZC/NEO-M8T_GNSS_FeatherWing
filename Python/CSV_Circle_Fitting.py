@@ -3,12 +3,10 @@
 # Fits a 3D circle to post-processed data from the u-blox NEO-M8T FeatherWing
 # processed by RTKLIB (RTKCONV and RTKPLOT).
 # The .pos file from RTKPLOT is converted to .csv by POS_to_CSV.py and contains
-# only x,y,z ECEF coordinates
+# only x,y,z ECEF coordinates for data points with a Q of 1
 
 # This code is based extensively on work by Miki at Meshlogic
 # https://meshlogic.github.io/posts/jupyter/curve-fitting/fitting-a-circle-to-cluster-of-3d-points/
-
-# Parts of the code are hard-coded to the 1m radius of the data
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -18,7 +16,7 @@ import os
 import string
 import csv
 
-print 'CSV Circle Fitting'
+print('CSV Circle Fitting')
 
 filename = ''
 
@@ -37,7 +35,7 @@ for root, dirs, files in os.walk("."):
 if filename == '': filename = raw_input('Enter the .csv filename (default: ' + firstfile + '): ') # Get the filename
 if filename == '': filename = firstfile
 
-print 'Processing',filename
+print('Processing %s'%filename)
 
 # Load the data
 P = np.genfromtxt(filename,delimiter=',')
@@ -60,42 +58,6 @@ def generate_circle_by_angles(t, C, r, theta, phi):
     # P(t) = r*cos(t)*u + r*sin(t)*(n x u) + C
     P_circle = r*np.cos(t)[:,np.newaxis]*u + r*np.sin(t)[:,np.newaxis]*np.cross(n,u) + C
     return P_circle
-
-#-------------------------------------------------------------------------------
-# Plot
-#-------------------------------------------------------------------------------
-f, ax = plt.subplots(1, 3, figsize=(16,5))
-alpha_pts = 0.5
-mean_x = np.mean(P[:,0]) # Calculate the mean x,y position
-mean_y = np.mean(P[:,1])
-mean_z = np.mean(P[:,2])
-min_xlim = mean_x - 1.1 # Define limits +/- 1.1m either side of the mean
-max_xlim = mean_x + 1.1 # Since we know the data should have a radius very close to 1m
-min_ylim = mean_y - 1.1
-max_ylim = mean_y + 1.1
-min_zlim = mean_z - 1.1
-max_zlim = mean_z + 1.1
-
-i = 0
-ax[i].scatter(P[:,0], P[:,1], alpha=alpha_pts, label='Points')
-ax[i].set_title('View X-Y')
-ax[i].set_xlabel('x'); ax[i].set_ylabel('y');
-ax[i].set(xlim=[min_xlim,max_xlim],ylim=[min_ylim,max_ylim],aspect=1)
-ax[i].grid()
-i = 1
-ax[i].scatter(P[:,0], P[:,2], alpha=alpha_pts, label='Points')
-ax[i].set_title('View X-Z')
-ax[i].set_xlabel('x'); ax[i].set_ylabel('z'); 
-ax[i].set(xlim=[min_xlim,max_xlim],ylim=[min_zlim,max_zlim],aspect=1)
-ax[i].grid()
-i = 2
-ax[i].scatter(P[:,1], P[:,2], alpha=alpha_pts, label='Points')
-ax[i].set_title('View Y-Z')
-ax[i].set_xlabel('y'); ax[i].set_ylabel('z'); 
-ax[i].set(xlim=[min_ylim,max_ylim],ylim=[min_zlim,max_zlim],aspect=1)
-ax[i].grid()
-ax[i].legend()
-plt.show()
 
 #-------------------------------------------------------------------------------
 # FIT CIRCLE 2D
@@ -182,41 +144,6 @@ def set_axes_equal_3d(ax):
     ax.set_zlim3d([centers[2]-radius, centers[2]+radius])
 
 #-------------------------------------------------------------------------------
-# Init figures
-#-------------------------------------------------------------------------------
-fig = plt.figure(figsize=(16,11))
-alpha_pts = 0.3
-figshape = (2,3)
-ax = [None]*4
-ax[0] = plt.subplot2grid(figshape, loc=(0,0), colspan=2)
-ax[1] = plt.subplot2grid(figshape, loc=(1,0))
-ax[2] = plt.subplot2grid(figshape, loc=(1,1))
-ax[3] = plt.subplot2grid(figshape, loc=(1,2))
-i = 0
-ax[i].set_title('Fitting circle in 2D coords projected onto fitting plane')
-ax[i].set_xlabel('x'); ax[i].set_ylabel('y');
-ax[i].set_aspect('equal', 'datalim'); ax[i].margins(.1, .1)
-ax[i].grid()
-i = 1
-ax[i].scatter(P[:,0], P[:,1], alpha=alpha_pts, label='Points')
-ax[i].set_title('View X-Y')
-ax[i].set_xlabel('x'); ax[i].set_ylabel('y');
-ax[i].set(xlim=[min_xlim,max_xlim],ylim=[min_ylim,max_ylim],aspect=1)
-ax[i].grid()
-i = 2
-ax[i].scatter(P[:,0], P[:,2], alpha=alpha_pts, label='Points')
-ax[i].set_title('View X-Z')
-ax[i].set_xlabel('x'); ax[i].set_ylabel('z'); 
-ax[i].set(xlim=[min_xlim,max_xlim],ylim=[min_zlim,max_zlim],aspect=1)
-ax[i].grid()
-i = 3
-ax[i].scatter(P[:,1], P[:,2], alpha=alpha_pts, label='Points')
-ax[i].set_title('View Y-Z')
-ax[i].set_xlabel('y'); ax[i].set_ylabel('z'); 
-ax[i].set(xlim=[min_ylim,max_ylim],ylim=[min_zlim,max_zlim],aspect=1)
-ax[i].grid()
-
-#-------------------------------------------------------------------------------
 # (1) Fitting plane by SVD for the mean-centered data
 # Eq. of plane is <p,n> + d = 0, where p is a point on plane and n is normal vector
 #-------------------------------------------------------------------------------
@@ -233,7 +160,6 @@ d = -np.dot(P_mean, normal)  # d = -<p,n>
 # (2) Project points to coords X-Y in 2D plane
 #-------------------------------------------------------------------------------
 P_xy = rodrigues_rot(P_centered, normal, [0,0,1])
-ax[0].scatter(P_xy[:,0], P_xy[:,1], alpha=alpha_pts, label='Projected points')
 
 #-------------------------------------------------------------------------------
 # (3) Fit circle in new 2D coords
@@ -241,13 +167,9 @@ ax[0].scatter(P_xy[:,0], P_xy[:,1], alpha=alpha_pts, label='Projected points')
 xc, yc, r = fit_circle_2d(P_xy[:,0], P_xy[:,1])
 
 #--- Generate circle points in 2D
-t = np.linspace(0, 2.*np.pi, 100)
+t = np.linspace(0, 2.*np.pi, 3600)
 xx = xc + r*np.cos(t)
 yy = yc + r*np.sin(t)
-
-ax[0].plot(xx, yy, 'k--', lw=2, label='Fitting circle')
-ax[0].plot(xc, yc, 'k+', ms=10)
-ax[0].legend()
 
 #-------------------------------------------------------------------------------
 # (4) Transform circle center back to 3D coords
@@ -256,19 +178,93 @@ C = rodrigues_rot(np.array([xc,yc,0]), [0,0,1], normal) + P_mean
 C = C.flatten()
 
 #--- Generate points for fitting circle
-t = np.linspace(0, 2.*np.pi, 100)
+t = np.linspace(0, 2.*np.pi, 3600)
 u = P[0] - C
 P_fitcircle = generate_circle_by_vectors(t, C, r, normal, u)
+
+#-------------------------------------------------------------------------------
+# Plot 2D
+#-------------------------------------------------------------------------------
+
+means = [np.mean(P[:,i]) for i in range(3)]
+min_xlim = means[0] - (r * 1.1)
+max_xlim = means[0] + (r * 1.1)
+min_ylim = means[1] - (r * 1.1)
+max_ylim = means[1] + (r * 1.1)
+min_zlim = means[2] - (r * 1.1)
+max_zlim = means[2] + (r * 1.1)
+
+fig = plt.figure(figsize=(16,11))
+alpha_pts = 0.2
+figshape = (2,3)
+ax = [None]*4
+ax[0] = plt.subplot2grid(figshape, loc=(0,0), colspan=2)
+ax[1] = plt.subplot2grid(figshape, loc=(1,0))
+ax[2] = plt.subplot2grid(figshape, loc=(1,1))
+ax[3] = plt.subplot2grid(figshape, loc=(1,2))
+i = 0
+ax[i].set_title('Fitting circle in 2D coords projected onto fitting plane')
+ax[i].set_xlabel('x'); ax[i].set_ylabel('y');
+ax[i].set_aspect('equal', 'datalim'); ax[i].margins(.1, .1)
+ax[i].grid()
+ax[i].get_xaxis().get_major_formatter().set_useOffset(False)
+ax[i].get_yaxis().get_major_formatter().set_useOffset(False)
+for tick in ax[i].get_xticklabels(): tick.set_rotation(45); tick.set_fontsize(10)
+for tick in ax[i].get_yticklabels(): tick.set_rotation(45); tick.set_fontsize(10)
+i = 1
+ax[i].scatter(P[:,0], P[:,1], alpha=alpha_pts, label='Points')
+ax[i].set_title('View X-Y')
+ax[i].set_xlabel('x'); ax[i].set_ylabel('y');
+ax[i].set(xlim=[min_xlim,max_xlim],ylim=[min_ylim,max_ylim],aspect=1)
+ax[i].grid()
+ax[i].get_xaxis().get_major_formatter().set_useOffset(False)
+ax[i].get_yaxis().get_major_formatter().set_useOffset(False)
+for tick in ax[i].get_xticklabels(): tick.set_rotation(45); tick.set_fontsize(10)
+for tick in ax[i].get_yticklabels(): tick.set_rotation(45); tick.set_fontsize(10)
+i = 2
+ax[i].scatter(P[:,0], P[:,2], alpha=alpha_pts, label='Points')
+ax[i].set_title('View X-Z')
+ax[i].set_xlabel('x'); ax[i].set_ylabel('z'); 
+ax[i].set(xlim=[min_xlim,max_xlim],ylim=[min_zlim,max_zlim],aspect=1)
+ax[i].grid()
+ax[i].get_xaxis().get_major_formatter().set_useOffset(False)
+ax[i].get_yaxis().get_major_formatter().set_useOffset(False)
+for tick in ax[i].get_xticklabels(): tick.set_rotation(45); tick.set_fontsize(10)
+for tick in ax[i].get_yticklabels(): tick.set_rotation(45); tick.set_fontsize(10)
+i = 3
+ax[i].scatter(P[:,1], P[:,2], alpha=alpha_pts, label='Points')
+ax[i].set_title('View Y-Z')
+ax[i].set_xlabel('y'); ax[i].set_ylabel('z'); 
+ax[i].set(xlim=[min_ylim,max_ylim],ylim=[min_zlim,max_zlim],aspect=1)
+ax[i].grid()
+ax[i].get_xaxis().get_major_formatter().set_useOffset(False)
+ax[i].get_yaxis().get_major_formatter().set_useOffset(False)
+for tick in ax[i].get_xticklabels(): tick.set_rotation(45); tick.set_fontsize(10)
+for tick in ax[i].get_yticklabels(): tick.set_rotation(45); tick.set_fontsize(10)
+
+ax[0].scatter(P_xy[:,0], P_xy[:,1], alpha=alpha_pts, label='Projected points')
+
+ax[0].plot(xx, yy, 'k--', lw=2, label='Fitting circle')
+ax[0].plot(xc, yc, 'k+', ms=10)
+ax[0].legend()
 
 ax[1].plot(P_fitcircle[:,0], P_fitcircle[:,1], 'k--', lw=2, label='Fitting circle')
 ax[2].plot(P_fitcircle[:,0], P_fitcircle[:,2], 'k--', lw=2, label='Fitting circle')
 ax[3].plot(P_fitcircle[:,1], P_fitcircle[:,2], 'k--', lw=2, label='Fitting circle')
 ax[3].legend()
 
-print('Fitting plane: n = %s' % np.array_str(normal, precision=4))
-print('Fitting circle: center = %s, r = %.4g' % (np.array_str(C, precision=4), r))
-
 plt.show()
+
+print('Fitting plane: n = %s' % np.array_str(normal, precision=4))
+print('Fitting circle: center = %s, r = %.4f' % (np.array_str(C, precision=4), r))
+
+latitude = np.degrees(np.arctan2(-normal[2], (normal[0]**2. + normal[1]**2.)**0.5))
+longitude = np.degrees(np.arctan2(-normal[1], -normal[0]))
+print('Circle would be horizontal at:   Latitude: %.2f   Longitude: %.2f'%(latitude,longitude))
+
+#-------------------------------------------------------------------------------
+# Plot 3D
+#-------------------------------------------------------------------------------
 
 fig = plt.figure(figsize=(16,10))
 ax = fig.add_subplot(1,1,1,projection='3d')
@@ -277,9 +273,6 @@ ax.plot(*P.T, ls='', marker='o', alpha=0.3, label='Points')
 #--- Plot fitting plane
 xx, yy = np.meshgrid(np.linspace(min_xlim,max_xlim,11.), np.linspace(min_ylim,max_ylim,11.))
 zz = (-normal[0]*xx - normal[1]*yy - d) / normal[2]
-
-# Cheat by labelling the fitting plane with the circle radius
-
 ax.plot_surface(xx, yy, zz, rstride=2, cstride=2, color='y' ,alpha=0.2, shade=False)
 
 #--- Plot fitting circle
@@ -290,10 +283,40 @@ ax.set_zlabel('Z')
 ax.legend()
 rad = 'Circle Radius %.3fm'%r
 plt.title(rad)
+ax.get_xaxis().get_major_formatter().set_useOffset(False)
+ax.get_yaxis().get_major_formatter().set_useOffset(False)
+ax.zaxis.major.formatter.set_useOffset(False)
+for tick in ax.get_xticklabels(): tick.set_fontsize(10)
+for tick in ax.get_yticklabels(): tick.set_fontsize(10)
+for tick in ax.get_zticklabels(): tick.set_fontsize(10)
 
 ax.set_xlim3d(min_xlim,max_xlim)
 ax.set_ylim3d(min_ylim,max_ylim)
 ax.set_zlim3d(min_zlim,max_zlim)
 
 plt.show()
+
+#---------------------------------------------------------------------------------
+# Calculate and plot minimum distances between data points and the fitting circle
+#---------------------------------------------------------------------------------
+print('Calculating minimum distances... (This could take a while!)')
+min_dists = []
+for point in P:
+    min_dist = 1000.
+    for fits in P_fitcircle:
+        dist = ((fits[0] - point[0])**2. + (fits[1] - point[1])**2. + (fits[2] - point[2])**2.)**0.5
+        if dist < min_dist: min_dist = dist
+    min_dists.append(min_dist)
+plt.hist(min_dists,'auto')
+plt.xlabel('Distance (m)')
+plt.ylabel('Frequency')
+plt.title('Minimum distances from data points to fitting circle')
+plt.grid(True)
+plt.show()
+
+mean_dist = np.mean(min_dists)
+std_dist = np.std(min_dists)
+print('Minimum distances from data points to fitting circle (m):   Mean %.4f   Std Dev %.4f'%(mean_dist,std_dist))
+
+
 
