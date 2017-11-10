@@ -81,7 +81,11 @@ To start, I used RTKCONV (rtkconv.exe) to convert the raw u-blox files from the 
 
 ![rtkconv.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkconv.JPG)
 
-I changed the data format setting to _u-blox_, left the options set to their default settings and then converted first the base data (base_20170917_183829.ubx) and then the rover data (rov_20170917_183928.ubx).
+I changed the data format setting to _u-blox_, then changed the _Options_ to:
+
+![rtkconv.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkconv_options.JPG)
+
+Then I converted first the base data (base_20170917_183829.ubx) and then the rover data (rov_20170917_183928.ubx).
 This created the .nav and .obs files needed by RTKPOST.
 
 Next I ran RTKPOST (rtkpost.exe):
