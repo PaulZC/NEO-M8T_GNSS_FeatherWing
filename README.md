@@ -7,7 +7,7 @@ It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for Po
 
 **See [LEARN.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/LEARN.md) for more details.**
 
-[POST_PROCESS.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/POST_PROCESS.md) contains results of a first time successful attempt at post-process precise positioning using [rtkexplorer's demo5 version of RTKLIB](http://rtkexplorer.com/downloads/rtklib-code/).
+[POST_PROCESS.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/POST_PROCESS.md) contains results of a first time successful attempt at post-processed kinematic positioning using [rtkexplorer's demo5 version of RTKLIB](http://rtkexplorer.com/downloads/rtklib-code/).
 
 See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/NEO-M8T_GNSS_FeatherWing.pdf) for the schematic, layout and Bill Of Materials.
 
