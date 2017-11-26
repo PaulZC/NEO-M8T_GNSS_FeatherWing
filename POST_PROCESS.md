@@ -1,9 +1,9 @@
-# Initial attempts at Post-Process Precise Positioning using the NEO-M8T GNSS FeatherWing
+# Initial attempts at Post-Processed Kinematic Positioning using the NEO-M8T GNSS FeatherWing
 
 ## 2017-09-17
 
 It has been a great weekend! After populating the first two NEO-M8T GNSS FeatherWing PCBs last weekend,
-this weekend I found time to give them a try and see if they showed any signs of delivering sub-cm accuracy post-processed precise positioning.
+this weekend I found time to give them a try and see if they showed any signs of delivering sub-cm accuracy post-processed kinematic positioning.
 
 **The early signs are very encouraging!**
 

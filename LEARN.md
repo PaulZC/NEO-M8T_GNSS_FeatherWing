@@ -1,7 +1,7 @@
 # NEO-M8T GNSS FeatherWing
 
 A clone of the [Adafruit Ultimate GPS FeatherWing](https://www.adafruit.com/product/3133) but with the u-blox NEO-M8T replacing the GlobalTop FGPMMOPA6H. The NEO-M8T can receive signals from GPS, Galileo and either GLONASS or BeiDou concurrently and supports both SBAS and QZSS.
-It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for post-process precise positioning.
+It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for Post-Processed Kinematic (PPK) positioning.
 
 ![NEO-M8T_FeatherWing](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing.JPG)
 
@@ -17,7 +17,7 @@ The [RAWX_Logger](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master
 - https://www.adafruit.com/products/2796
 - https://learn.adafruit.com/adafruit-feather-m0-adalogger
 
-[POST_PROCESS.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/POST_PROCESS.md) contains results of a first time successful attempt at post-process precise positioning using [rtkexplorer's demo5 version of RTKLIB](http://rtkexplorer.com/downloads/rtklib-code/).
+[POST_PROCESS.md](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/POST_PROCESS.md) contains results of a first time successful attempt at post-processed kinematic positioning using [rtkexplorer's demo5 version of RTKLIB](http://rtkexplorer.com/downloads/rtklib-code/).
 Please refer to the [Precise Positioning Resources](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/LEARN.md#precise-positioning-resources) for more information.
 
 This guide concentrates on the differences between the NEO-M8T FeatherWing and the Adafruit Ultimate GPS FeatherWing. Please refer to Lady Ada's excellent documentation to get started with the Feather family and GPS:

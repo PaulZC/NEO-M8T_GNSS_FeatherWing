@@ -1,7 +1,7 @@
 # NEO-M8T GNSS FeatherWing
 
 A clone of the [Adafruit Ultimate GPS FeatherWing](https://www.adafruit.com/product/3133) but with the u-blox NEO-M8T replacing the GlobalTop FGPMMOPA6H. The NEO-M8T can receive signals from GPS, Galileo and GLONASS or BeiDou concurrently and supports both SBAS and QZSS.
-It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for post-process precise positioning.
+It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for Post-Processed Kinematic (PPK) positioning.
 
 ![NEO-M8T_FeatherWing](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing.JPG)
 
