@@ -13,7 +13,7 @@ See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_Feathe
 
 The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design files.
 
-The [RAWX_Logger](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger) directory contains code for the [Adafruit Feather M0 Adalogger](https://www.adafruit.com/products/2796) which will log RAWX data to SD card.
+The [Arduino](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino) directory contains code for the [Adafruit Feather M0 Adalogger](https://www.adafruit.com/products/2796) which will log RAWX data to SD card.
 - https://www.adafruit.com/products/2796
 - https://learn.adafruit.com/adafruit-feather-m0-adalogger
 
@@ -175,11 +175,14 @@ and change:
 - #define SERIAL_BUFFER_SIZE 164
 
 to:
-- #define SERIAL_BUFFER_SIZE 1024
+- #define SERIAL_BUFFER_SIZE 2048
 
 Check the reported freeMemory before and after to make sure the change has been successful. (You should find that you've lost twice as much memory as expected!)
 
 The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Flaga's MemoryFree. See below for the download links.
+
+[RAWX_Logger_2](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger_2) is an improved version of the logger. Rover data is logged to a file called _r_hhmmss.ubx_,
+base (static) data is logged to a file called _b_hhmmss.ubx_. A new log file is automatically opened every _INTERVAL_ minutes to minimise data loss in the event of a power failure.
 
 ## PC Logging
 

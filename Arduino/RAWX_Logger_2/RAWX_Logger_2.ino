@@ -1,4 +1,11 @@
+// RAWX_Logger V2
+
 // Logs RXM-RAWX, RXM-SFRBX and TIM-TM2 data from u-blox NEO-M8T GNSS to SD card
+
+// Changes to a new log file every INTERVAL minutes
+
+// The RAWX log file has a .ubx suffix instead of .bin
+// The log filename starts with "r_" for the rover and "b_" for the static base
 
 // This code is written for the Adalogger M0 Feather
 // https://www.adafruit.com/products/2796
@@ -24,7 +31,7 @@
 // (You should find that you've lost twice as much memory as expected!)
 
 // Define if this is the static base logger
-//#define STATIC // Comment this line out for the mobile rover logger
+#define STATIC // Comment this line out for the mobile rover logger
 
 // Define the GNSS configuration: GPS + Galileo + either GLONASS or BeiDou
 #define GLONASS // Comment this line out to use BeiDou
@@ -62,7 +69,11 @@ boolean usingInterrupt = false;
 const uint8_t cardSelect = 4;
 SdFat sd;
 SdFile rawx_dataFile;
-char rawx_filename[] = "20000000/000000.bin";
+#ifdef STATIC
+char rawx_filename[] = "20000000/b_000000.ubx"; // base logfile
+#else
+char rawx_filename[] = "20000000/r_000000.ubx"; // rover logfile
+#endif
 char dirname[] = "20000000";
 long bytes_written = 0;
 
@@ -77,10 +88,18 @@ int bufferPointer = 0;
 
 // Battery voltage
 float vbat;
+#define LOWBAT 3.55 // Low battery voltage
 
-// Count number of valid fixes before starting to log (to avoid possible corrupt file names)
-int valfix = 0;
+#include <RTCZero.h> // M0 Real Time Clock
+RTCZero rtc; // Create an rtc object
+bool alarmFlag = false; // Timer interrupt flag
+// Define how long we should log in minutes before changing to a new file
+// Sensible values are: 5, 10, 15, 20, 30, 60
+int INTERVAL = 15;
+
+// Count number of valid fixes before starting to log
 #define maxvalfix 10 // Collect at least this many valid fixes before logging starts
+int valfix = 0;
 
 // Definitions for u-blox M8 UBX-format (binary) messages
 // The message definitions need to include the 0xB5 and 0x62 sync chars 
@@ -190,8 +209,6 @@ static const int len_setGNSS = 66;
 static const uint8_t setRATE[] = { 0xb5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xfa, 0x00, 0x01, 0x00, 0x00, 0x00 };
 // Set Navigation/Measurement Rate (CFG-RATE): set measRate to 250msec; align to GPS time
 //static const uint8_t setRATE[] = { 0xb5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xfa, 0x00, 0x01, 0x00, 0x01, 0x00 };
-// Set Navigation/Measurement Rate (CFG-RATE): set measRate to 500msec; align to UTC time
-//static const uint8_t setRATE[] = { 0xb5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xf4, 0x01, 0x01, 0x00, 0x00, 0x00 };
 // Set Navigation/Measurement Rate (CFG-RATE): set measRate to 1000msec; align to UTC time
 static const uint8_t setRATE_1Hz[] = { 0xb5, 0x62, 0x06, 0x08, 0x06, 0x00, 0xe8, 0x03, 0x01, 0x00, 0x00, 0x00 };
 // Set Navigation/Measurement Rate (CFG-RATE): set measRate to 10000msec; align to UTC time
@@ -215,6 +232,15 @@ static const uint8_t setTIM[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x0d, 0x03
 // Set TIM-TM2 Message Rate: off
 static const uint8_t setTIMoff[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x0d, 0x03, 0x00 };
 static const int len_setTIM = 9;
+
+// Set UART configuration - disable or enable UBX messages
+static const uint8_t setUBX[] = {
+  0xb5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0xc0, 0x08, 0x00, 0x00, 0x00, 0xc2, 0x01, 0x00,
+  0x03, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static const uint8_t setUBXoff[] = {
+  0xb5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0xc0, 0x08, 0x00, 0x00, 0x00, 0xc2, 0x01, 0x00,
+  0x03, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static const int len_setUBX = 26;
 
 // Send message in u-blox UBX format
 // Calculates and appends the two checksum bytes
@@ -248,6 +274,22 @@ void sendUBX(const uint8_t *message, const int len) {
   if (csum2 < 16) {Serial.print("0");}
   Serial.println((uint8_t)csum2, HEX);
 #endif
+}
+
+// RTC alarm interrupt
+void alarmMatch()
+{
+  uint8_t rtc_mins = rtc.getMinutes(); // Read the RTC minutes
+  uint8_t rtc_hours = rtc.getHours(); // Read the RTC hours
+  rtc_mins = rtc_mins + INTERVAL; // Add the INTERVAL to the RTC minutes
+  while (rtc_mins >= 60) { // If there has been an hour roll over
+    rtc_mins = rtc_mins - 60; // Subtract 60 minutes
+    rtc_hours = rtc_hours + 1; // Add an hour
+  }
+  rtc_hours = rtc_hours % 24; // Check for a day roll over
+  rtc.setAlarmMinutes(rtc_mins); // Set next alarm time (minutes)
+  rtc.setAlarmHours(rtc_hours); // Set next alarm time (hours)
+  alarmFlag = true; // Set alarm flag
 }
 
 void setup()
@@ -347,10 +389,13 @@ void setup()
   // See if the SD card is present and can be initialized
   if (!sd.begin(cardSelect, SD_SCK_MHZ(10))) { // 10MHz seems more than fast enough
     Serial.println("Panic!! SD Card Init failed, or not present!");
+    Serial.println("Waiting for reset...");
     // don't do anything more:
     while(1);
   }
   Serial.println("SD Card initialized!");
+
+  bufferPointer = 0; // Make sure bufferPointer is initialised (should be redundant!)
 
   // turn red LED off
   digitalWrite(RedLED, LOW);
@@ -359,9 +404,9 @@ void setup()
 
 // Loop Steps
 #define init        0
-#define write_file  1
-#define close_file  2
-#define loop_end    3
+#define open_file   1
+#define write_file  2
+#define close_file  3
 int loop_step = init;
 
 void loop() // run over and over again
@@ -422,75 +467,26 @@ void loop() // run over and over again
           digitalWrite(GreenLED, LOW);
         }
   
-        if (valfix == maxvalfix) { // wait until we have enough valid fixes to avoid possible filename corruption
-  
-          // do the divides
-          char GPShourT = GPS.hour/10 + '0';
-          char GPShourU = GPS.hour%10 + '0';
-          char GPSminT = GPS.minute/10 + '0';
-          char GPSminU = GPS.minute%10 + '0';
-          char GPSsecT = GPS.seconds/10 + '0';
-          char GPSsecU = GPS.seconds%10 + '0';
-          char GPSyearT = GPS.year/10 +'0';
-          char GPSyearU = GPS.year%10 +'0';
-          char GPSmonT = GPS.month/10 +'0';
-          char GPSmonU = GPS.month%10 +'0';
-          char GPSdayT = GPS.day/10 +'0';
-          char GPSdayU = GPS.day%10 +'0';
-  
-          // flash red LED to indicate SD write (leave on if an error occurs)
-          digitalWrite(RedLED, HIGH);
-  
+        if (valfix == maxvalfix) { // wait until we have enough valid fixes
+          
+          // Set and start the RTC
+          alarmFlag = false; // Make sure alarm flag is clear
+          rtc.begin(); // Start the RTC
+          rtc.setTime(GPS.hour, GPS.minute, GPS.seconds); // Set the time
+          rtc.setDate(GPS.day, GPS.month, GPS.year); // Set the date
+          rtc.setAlarmSeconds(0); // Set RTC Alarm Seconds to zero
+          uint8_t nextAlarmMin = ((GPS.minute+INTERVAL)/INTERVAL)*INTERVAL; // Calculate next alarm minutes
+          nextAlarmMin = nextAlarmMin % 60; // Correct hour rollover
+          rtc.setAlarmMinutes(nextAlarmMin); // Set RTC Alarm Minutes
+          rtc.enableAlarm(rtc.MATCH_MMSS); // Alarm Match on minutes and seconds
+          rtc.attachInterrupt(alarmMatch); // Attach alarm interrupt
+
           // syntax checking:
-          // check if voltage is > 3.55V, if not then don't try to write!
-          if (vbat < 3.55) {
+          // check if voltage is > LOWBAT(V), if not then don't try to write!
+          if (vbat < LOWBAT) {
             Serial.println("Low Battery!");
             break;
           }
-          // check year
-          if ((GPS.year < 16) || (GPS.year > 26)) break;
-          // check month
-          if (GPS.month > 12) break;
-           // check day
-          if (GPS.day > 31) break;
-    
-          // filename is limited to 8.3 characters so use format: YYYYMMDD/HHMMSS.bin
-          rawx_filename[2] = GPSyearT;
-          rawx_filename[3] = GPSyearU;
-          rawx_filename[4] = GPSmonT;
-          rawx_filename[5] = GPSmonU;
-          rawx_filename[6] = GPSdayT;
-          rawx_filename[7] = GPSdayU;
-          rawx_filename[9] = GPShourT;
-          rawx_filename[10] = GPShourU;
-          rawx_filename[11] = GPSminT;
-          rawx_filename[12] = GPSminU;
-          rawx_filename[13] = GPSsecT;
-          rawx_filename[14] = GPSsecU;
-          
-          dirname[2] = GPSyearT;
-          dirname[3] = GPSyearU;
-          dirname[4] = GPSmonT;
-          dirname[5] = GPSmonU;
-          dirname[6] = GPSdayT;
-          dirname[7] = GPSdayU;
-  
-          // try to create subdirectory (even if it exists already)
-          sd.mkdir(dirname);
-          
-          // Open the rawx file for fast writing
-          if (rawx_dataFile.open(rawx_filename, O_CREAT | O_WRITE | O_EXCL)) {
-            Serial.print("Logging to ");
-            Serial.println(rawx_filename);
-          }
-          // if the file isn't open, pop up an error:
-          else {
-            Serial.println("Error opening RAWX file!");
-            break;
-          }
-          
-          bytes_written = 0; // Clear bytes_written
-          bufferPointer = 0; // (Re)initialise bufferPointer
 
           GPS.sendCommand("$PUBX,40,GGA,0,0,0,0*5A");  // Disable GGA
           delay(100);
@@ -499,18 +495,83 @@ void loop() // run over and over again
           sendUBX(setRATE, len_setRATE); // Set Navigation/Measurement Rate
           delay(1100); // Wait
           while(Serial1.available()){Serial1.read();} // Flush RX buffer
-          sendUBX(setRAWX, len_setRAWX); // Set RXM-RAWX message rate
-          sendUBX(setSFRBX, len_setSFRBX); // Set RXM-SFRBX message rate
-          sendUBX(setTIM, len_setTIM); // Set TIM-TM2 message rate
-          while (Serial1.available() < 30) ; // Wait for UBX acknowledgements (3x10 bytes)
-          for (int x=0;x<30;x++) {
-            Serial1.read(); // Clear out the acknowledgement
-          }
           
-          digitalWrite(RedLED, LOW); // turn red LED off
-          loop_step = write_file; // start logging rawx data
+          loop_step = open_file; // start logging rawx data
         }
       }
+    }
+    break;
+
+    // Open the log file
+    case open_file: {
+      // flash red LED to indicate SD write (leave on if an error occurs)
+      digitalWrite(RedLED, HIGH);
+
+      // Do the divides to convert date and time to char
+      char secT = rtc.getSeconds()/10 + '0';
+      char secU = rtc.getSeconds()%10 + '0';
+      char minT = rtc.getMinutes()/10 + '0';
+      char minU = rtc.getMinutes()%10 + '0';
+      char hourT = rtc.getHours()/10 + '0';
+      char hourU = rtc.getHours()%10 + '0';
+      char dayT = rtc.getDay()/10 +'0';
+      char dayU = rtc.getDay()%10 +'0';
+      char monT = rtc.getMonth()/10 +'0';
+      char monU = rtc.getMonth()%10 +'0';
+      char yearT = rtc.getYear()/10 +'0';
+      char yearU = rtc.getYear()%10 +'0';
+  
+      // filename is limited to 8.3 characters so use format: YYYYMMDD/r_HHMMSS.ubx or YYYYMMDD/b_HHMMSS.ubx
+      rawx_filename[2] = yearT;
+      rawx_filename[3] = yearU;
+      rawx_filename[4] = monT;
+      rawx_filename[5] = monU;
+      rawx_filename[6] = dayT;
+      rawx_filename[7] = dayU;
+      rawx_filename[11] = hourT;
+      rawx_filename[12] = hourU;
+      rawx_filename[13] = minT;
+      rawx_filename[14] = minU;
+      rawx_filename[15] = secT;
+      rawx_filename[16] = secU;
+      
+      dirname[2] = yearT;
+      dirname[3] = yearU;
+      dirname[4] = monT;
+      dirname[5] = monU;
+      dirname[6] = dayT;
+      dirname[7] = dayU;
+
+      // try to create subdirectory (even if it exists already)
+      sd.mkdir(dirname);
+      
+      // Open the rawx file for fast writing
+      if (rawx_dataFile.open(rawx_filename, O_CREAT | O_WRITE | O_EXCL)) {
+        Serial.print("Logging to ");
+        Serial.println(rawx_filename);
+      }
+      // if the file isn't open, pop up an error:
+      else {
+        Serial.println("Panic!! Error opening RAWX file!");
+        Serial.println("Waiting for reset...");
+        // don't do anything more:
+        while(1);
+      }
+
+      bytes_written = 0; // Clear bytes_written
+      bufferPointer = 0; // (Re)initialise bufferPointer
+
+      // Start RAWX messages
+      sendUBX(setRAWX, len_setRAWX); // Set RXM-RAWX message rate
+      sendUBX(setSFRBX, len_setSFRBX); // Set RXM-SFRBX message rate
+      sendUBX(setTIM, len_setTIM); // Set TIM-TM2 message rate
+      while (Serial1.available() < 30) ; // Wait for three UBX acknowledgements (3 x 10 = 30 bytes)
+      for (int x=0;x<30;x++) {
+        Serial1.read(); // Clear out the acknowledgement
+      }
+
+      digitalWrite(RedLED, LOW); // turn red LED off
+      loop_step = write_file; // start logging rawx data
     }
     break;
 
@@ -539,7 +600,8 @@ void loop() // run over and over again
         // read battery voltage
         vbat = analogRead(A7) * (2.0 * 3.3 / 1023.0);
         // check if the stop button has been pressed or battery is low
-        if ((digitalRead(swPin) == LOW) or (vbat < 3.55)) {
+        // or if it is time to open a new file
+        if ((digitalRead(swPin) == LOW) or (vbat < LOWBAT) or (alarmFlag == true)) {
           loop_step = close_file; // now close the file
           break;
         }
@@ -553,8 +615,8 @@ void loop() // run over and over again
       sendUBX(setSFRBXoff, len_setSFRBX); // Disable messages
       sendUBX(setTIMoff, len_setTIM); // Disable messages
       int waitcount = 0;
-      // leave 30 bytes in the buffer as this should be the three message acknowledgements
-      while (waitcount < 1000) { // Wait for ~1 sec for residual data
+      // leave 30 bytes in the buffer as this should be the three message acknowledgements (3 x 10 bytes)
+      while (waitcount < 550) { // Wait for residual data (550msec seems to be the lowest valid waitcount for 4Hz (250msec) logging)
         while (Serial1.available() > 30) {
           serBuffer[bufferPointer] = Serial1.read();
           bufferPointer++;
@@ -587,7 +649,7 @@ void loop() // run over and over again
         Serial.println(" Bytes");
 #endif
         digitalWrite(RedLED, LOW);
-        bufferPointer = 0; // reset bufferPointer (redundant!)
+        bufferPointer = 0; // reset bufferPointer - even though open_file will do it anyway
       }
 #ifdef DEBUG
       Serial.println("Bytes left in the buffer were as follows. These should be the three message acknowledgements:");
@@ -603,22 +665,26 @@ void loop() // run over and over again
       while(Serial1.available()){Serial1.read();} // Flush RX buffer - clear the acknowledgements
 #endif
       rawx_dataFile.close(); // close the file
-      digitalWrite(RedLED, HIGH); // leave the red led on
-      loop_step = loop_end;
+#ifdef DEBUG
       uint32_t filesize = rawx_dataFile.fileSize(); // Get the file size
       Serial.print("File size is ");
       Serial.println(filesize);
       Serial.print("File size should be ");
       Serial.println(bytes_written);
+#endif
       Serial.println("File closed!");
-      Serial.println("Waiting for reset...");
+      if (alarmFlag == true) {
+        loop_step = open_file;
+        alarmFlag = false;
+      }
+      else {
+        digitalWrite(RedLED, HIGH); // leave the red led on
+        Serial.println("Waiting for reset...");
+        while(1); // Wait for reset
+      }
     }
     break;
     
-    case loop_end: {
-      ; // Wait for reset
-    }
-    break;
   }
 }
 
