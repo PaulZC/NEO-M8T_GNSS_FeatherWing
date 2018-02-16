@@ -1,4 +1,12 @@
-// Logs RXM-RAWX, RXM-SFRBX and TIM-TM2 data from u-blox NEO-M8T GNSS to SD card
+// RAWX_Logger
+
+// Logs RXM-RAWX, RXM-SFRBX and TIM-TM2 data from u-blox NEO-M8T GNSS to a single SD card file
+
+// The RAWX log file has a .ubx suffix instead of .bin
+// The log filename starts with "r_" for the rover and "b_" for the static base
+
+// Define if this is the static base logger
+//#define STATIC // Comment this line out for the mobile rover logger
 
 // This code is written for the Adalogger M0 Feather
 // https://www.adafruit.com/products/2796
@@ -21,10 +29,7 @@
 // and change: #define SERIAL_BUFFER_SIZE 164
 // to:         #define SERIAL_BUFFER_SIZE 2048
 // Check the reported freeMemory before and after to make sure the change has been successful
-// (You should find that you've lost twice as much memory as expected!)
-
-// Define if this is the static base logger
-//#define STATIC // Comment this line out for the mobile rover logger
+// (You should find that you've lost twice as much memory as expected! (Tx and Rx buffers both increase in size!))
 
 // Define the GNSS configuration: GPS + Galileo + either GLONASS or BeiDou
 #define GLONASS // Comment this line out to use BeiDou
@@ -57,12 +62,20 @@ boolean usingInterrupt = false;
 
 // Fast SD card logging using Bill Greiman's SdFat
 // https://github.com/greiman/SdFat
+// From FatFile.h:
+//   * \note Data is moved to the cache but may not be written to the
+//   * storage device until sync() is called.
+
 #include <SPI.h>
 #include <SdFat.h>
 const uint8_t cardSelect = 4;
 SdFat sd;
 SdFile rawx_dataFile;
-char rawx_filename[] = "20000000/000000.bin";
+#ifdef STATIC
+char rawx_filename[] = "20000000/b_000000.ubx"; // base logfile
+#else
+char rawx_filename[] = "20000000/r_000000.ubx"; // rover logfile
+#endif
 char dirname[] = "20000000";
 long bytes_written = 0;
 
@@ -273,6 +286,7 @@ void setup()
 
   Serial.begin(115200);
 
+  Serial.println("RAWX_Logger");
   Serial.println("Log GNSS RAWX data to SD card");
   Serial.println("Green LED = Initial GNSS Fix");
   Serial.println("Red LED Flash = SD Write");
@@ -424,7 +438,7 @@ void loop() // run over and over again
   
         if (valfix == maxvalfix) { // wait until we have enough valid fixes to avoid possible filename corruption
   
-          // do the divides
+          // do the divides to convert date and time to char
           char GPShourT = GPS.hour/10 + '0';
           char GPShourU = GPS.hour%10 + '0';
           char GPSminT = GPS.minute/10 + '0';
@@ -454,19 +468,19 @@ void loop() // run over and over again
            // check day
           if (GPS.day > 31) break;
     
-          // filename is limited to 8.3 characters so use format: YYYYMMDD/HHMMSS.bin
+          // filename is limited to 8.3 characters so use format: YYYYMMDD/r_HHMMSS.ubx or YYYYMMDD/b_HHMMSS.ubx
           rawx_filename[2] = GPSyearT;
           rawx_filename[3] = GPSyearU;
           rawx_filename[4] = GPSmonT;
           rawx_filename[5] = GPSmonU;
           rawx_filename[6] = GPSdayT;
           rawx_filename[7] = GPSdayU;
-          rawx_filename[9] = GPShourT;
-          rawx_filename[10] = GPShourU;
-          rawx_filename[11] = GPSminT;
-          rawx_filename[12] = GPSminU;
-          rawx_filename[13] = GPSsecT;
-          rawx_filename[14] = GPSsecU;
+          rawx_filename[11] = GPShourT;
+          rawx_filename[12] = GPShourU;
+          rawx_filename[13] = GPSminT;
+          rawx_filename[14] = GPSminU;
+          rawx_filename[15] = GPSsecT;
+          rawx_filename[16] = GPSsecU;
           
           dirname[2] = GPSyearT;
           dirname[3] = GPSyearU;
@@ -523,7 +537,7 @@ void loop() // run over and over again
           bufferPointer = 0;
           digitalWrite(RedLED, HIGH); // flash red LED
           rawx_dataFile.write(serBuffer, SDpacket);
-          //rawx_dataFile.flush();
+          rawx_dataFile.sync();
           bytes_written += SDpacket;
 #ifdef DEBUG
           Serial.print("SD Write: ");
@@ -562,7 +576,7 @@ void loop() // run over and over again
             bufferPointer = 0;
             digitalWrite(RedLED, HIGH); // flash red LED
             rawx_dataFile.write(serBuffer, SDpacket);
-            //rawx_dataFile.flush();
+            rawx_dataFile.sync();
             bytes_written += SDpacket;
 #ifdef DEBUG
             Serial.print("SD Write: ");
@@ -580,6 +594,7 @@ void loop() // run over and over again
       if (bufferPointer > 0) {
         digitalWrite(RedLED, HIGH); // flash red LED
         rawx_dataFile.write(serBuffer, bufferPointer); // Write remaining data
+        rawx_dataFile.sync();
         bytes_written += bufferPointer;
 #ifdef DEBUG
         Serial.print("Final SD Write: ");

@@ -150,8 +150,11 @@ You can find the messages to change the navigation mode and GNSS configuration i
 - https://www.adafruit.com/products/2796
 - https://learn.adafruit.com/adafruit-feather-m0-adalogger
 
-The code logs RAWX data continuously to SD card until the stop button is pressed. Since the code is logging a large amount of data, it is necessary to keep the log file open throughout.
-If the power is removed or the board is reset before the stop button is pressed, the logged data will be lost.
+Rover data is logged to a file called _r_hhmmss.ubx_, base (static) data is logged to a file called _b_hhmmss.ubx_. The code logs RAWX data continuously to SD card until the stop button is pressed.
+Since the code is logging a large amount of data, it is necessary to keep the log file open throughout. If the power is removed or the board is reset before the stop button is pressed, the logged data will be lost.
+
+[RAWX_Logger_2](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger_2) is an improved version of the logger.
+A new log file is automatically opened every _INTERVAL_ minutes to minimise data loss in the event of a power failure.
 
 Connect a normally-open push-to-close switch between swPin and GND. By default, swPin is Digital Pin 15 (0.2" away from the GND pin on the Adalogger). The pin can be changed by editing the code.
 
@@ -171,18 +174,18 @@ You will need to increase the size of the serial buffer to avoid data overruns w
 For the Adafruit Feather M0 Adalogger (SAMD), under Windows, edit:
 - C:\Users\ ...your_user... \AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.0.19\cores\arduino\RingBuffer.h
 
-and change:
+and change this line:
 - #define SERIAL_BUFFER_SIZE 164
 
-to:
+For RAWX_Logger, change it to:
 - #define SERIAL_BUFFER_SIZE 2048
+
+For RAWX_Logger_2, change it to:
+- #define SERIAL_BUFFER_SIZE 8192
 
 Check the reported freeMemory before and after to make sure the change has been successful. (You should find that you've lost twice as much memory as expected!)
 
 The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Flaga's MemoryFree. See below for the download links.
-
-[RAWX_Logger_2](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger_2) is an improved version of the logger. Rover data is logged to a file called _r_hhmmss.ubx_,
-base (static) data is logged to a file called _b_hhmmss.ubx_. A new log file is automatically opened every _INTERVAL_ minutes to minimise data loss in the event of a power failure.
 
 ## PC Logging
 

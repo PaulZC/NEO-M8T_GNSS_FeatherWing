@@ -4,8 +4,18 @@
 
 // Changes to a new log file every INTERVAL minutes
 
+// Define how long we should log in minutes before changing to a new file
+// Sensible values are: 5, 10, 15, 20, 30, 60
+const int INTERVAL = 60;
+
+// Define how long we should wait in msec (approx.) for residual RAWX data before closing a log file
+const int dwell = 300;
+
 // The RAWX log file has a .ubx suffix instead of .bin
 // The log filename starts with "r_" for the rover and "b_" for the static base
+
+// Define if this is the static base logger
+//#define STATIC // Comment this line out for the mobile rover logger
 
 // This code is written for the Adalogger M0 Feather
 // https://www.adafruit.com/products/2796
@@ -26,12 +36,9 @@
 // See this post by MartinL: https://forum.arduino.cc/index.php?topic=365220.0
 // Under Windows, edit: C:\Users\ ...your_user... \AppData\Local\Arduino15\packages\adafruit\hardware\samd\1.0.19\cores\arduino\RingBuffer.h
 // and change: #define SERIAL_BUFFER_SIZE 164
-// to:         #define SERIAL_BUFFER_SIZE 2048
+// to:         #define SERIAL_BUFFER_SIZE 8192
 // Check the reported freeMemory before and after to make sure the change has been successful
-// (You should find that you've lost twice as much memory as expected!)
-
-// Define if this is the static base logger
-#define STATIC // Comment this line out for the mobile rover logger
+// (You should find that you've lost twice as much memory as expected! (Tx and Rx buffers both increase in size!))
 
 // Define the GNSS configuration: GPS + Galileo + either GLONASS or BeiDou
 #define GLONASS // Comment this line out to use BeiDou
@@ -64,6 +71,10 @@ boolean usingInterrupt = false;
 
 // Fast SD card logging using Bill Greiman's SdFat
 // https://github.com/greiman/SdFat
+// From FatFile.h:
+//   * \note Data is moved to the cache but may not be written to the
+//   * storage device until sync() is called.
+
 #include <SPI.h>
 #include <SdFat.h>
 const uint8_t cardSelect = 4;
@@ -77,10 +88,11 @@ char rawx_filename[] = "20000000/r_000000.ubx"; // rover logfile
 char dirname[] = "20000000";
 long bytes_written = 0;
 
-// Define 'packet' size for SD card writes
-#define SDpacket 512
-byte serBuffer[SDpacket];
-int bufferPointer = 0;
+// Define packet size, buffer and buffer pointer for SD card writes
+const size_t SDpacket = 512;
+uint8_t serBuffer[SDpacket];
+size_t bufferPointer = 0;
+int numBytes;
 
 // Michael P. Flaga's MemoryFree:
 // https://github.com/mpflaga/Arduino-MemoryFree
@@ -93,13 +105,17 @@ float vbat;
 #include <RTCZero.h> // M0 Real Time Clock
 RTCZero rtc; // Create an rtc object
 bool alarmFlag = false; // Timer interrupt flag
-// Define how long we should log in minutes before changing to a new file
-// Sensible values are: 5, 10, 15, 20, 30, 60
-int INTERVAL = 15;
 
 // Count number of valid fixes before starting to log
 #define maxvalfix 10 // Collect at least this many valid fixes before logging starts
 int valfix = 0;
+
+// Loop Steps
+#define init        0
+#define open_file   1
+#define write_file  2
+#define close_file  3
+int loop_step = init;
 
 // Definitions for u-blox M8 UBX-format (binary) messages
 // The message definitions need to include the 0xB5 and 0x62 sync chars 
@@ -233,7 +249,7 @@ static const uint8_t setTIM[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x0d, 0x03
 static const uint8_t setTIMoff[] = { 0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x0d, 0x03, 0x00 };
 static const int len_setTIM = 9;
 
-// Set UART configuration - disable or enable UBX messages
+// Set port configuration - disable or enable UBX output messages on the UART
 static const uint8_t setUBX[] = {
   0xb5, 0x62, 0x06, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0xc0, 0x08, 0x00, 0x00, 0x00, 0xc2, 0x01, 0x00,
   0x03, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -315,6 +331,7 @@ void setup()
 
   Serial.begin(115200);
 
+  Serial.println("RAWX_Logger_2");
   Serial.println("Log GNSS RAWX data to SD card");
   Serial.println("Green LED = Initial GNSS Fix");
   Serial.println("Red LED Flash = SD Write");
@@ -377,7 +394,7 @@ void setup()
   delay(100);
   sendUBX(setGNSS, len_setGNSS); // Set GNSS - causes a reset of the M8!
   delay(3100);
-  while(Serial1.available()){Serial1.read();} // Flush RX buffer
+  while(Serial1.available()){Serial1.read();} // Flush RX buffer so we don't confuse Adafruit_GPS with UBX acknowledgements
 
   Serial.println("GNSS initialized!");
 
@@ -387,7 +404,7 @@ void setup()
   // Initialise SD card
   Serial.println("Initializing SD card...");
   // See if the SD card is present and can be initialized
-  if (!sd.begin(cardSelect, SD_SCK_MHZ(10))) { // 10MHz seems more than fast enough
+  if (!sd.begin(cardSelect, SD_SCK_MHZ(50))) {
     Serial.println("Panic!! SD Card Init failed, or not present!");
     Serial.println("Waiting for reset...");
     // don't do anything more:
@@ -401,13 +418,6 @@ void setup()
   digitalWrite(RedLED, LOW);
   
 }
-
-// Loop Steps
-#define init        0
-#define open_file   1
-#define write_file  2
-#define close_file  3
-int loop_step = init;
 
 void loop() // run over and over again
 {
@@ -494,7 +504,7 @@ void loop() // run over and over again
           delay(100);
           sendUBX(setRATE, len_setRATE); // Set Navigation/Measurement Rate
           delay(1100); // Wait
-          while(Serial1.available()){Serial1.read();} // Flush RX buffer
+          while(Serial1.available()){Serial1.read();} // Flush RX buffer to clear UBX acknowledgement
           
           loop_step = open_file; // start logging rawx data
         }
@@ -504,9 +514,7 @@ void loop() // run over and over again
 
     // Open the log file
     case open_file: {
-      // flash red LED to indicate SD write (leave on if an error occurs)
-      digitalWrite(RedLED, HIGH);
-
+      
       // Do the divides to convert date and time to char
       char secT = rtc.getSeconds()/10 + '0';
       char secU = rtc.getSeconds()%10 + '0';
@@ -542,6 +550,9 @@ void loop() // run over and over again
       dirname[6] = dayT;
       dirname[7] = dayU;
 
+      // flash red LED to indicate SD write (leave on if an error occurs)
+      digitalWrite(RedLED, HIGH);
+
       // try to create subdirectory (even if it exists already)
       sd.mkdir(dirname);
       
@@ -558,6 +569,8 @@ void loop() // run over and over again
         while(1);
       }
 
+      digitalWrite(RedLED, LOW); // turn red LED off
+
       bytes_written = 0; // Clear bytes_written
       bufferPointer = 0; // (Re)initialise bufferPointer
 
@@ -565,12 +578,21 @@ void loop() // run over and over again
       sendUBX(setRAWX, len_setRAWX); // Set RXM-RAWX message rate
       sendUBX(setSFRBX, len_setSFRBX); // Set RXM-SFRBX message rate
       sendUBX(setTIM, len_setTIM); // Set TIM-TM2 message rate
-      while (Serial1.available() < 30) ; // Wait for three UBX acknowledgements (3 x 10 = 30 bytes)
-      for (int x=0;x<30;x++) {
-        Serial1.read(); // Clear out the acknowledgement
-      }
 
-      digitalWrite(RedLED, LOW); // turn red LED off
+      while (Serial1.available() < 30) { ; } // Wait for three UBX acknowledgements' worth of data (3 x 10 = 30 bytes)
+      
+      for (int x=0;x<3;x++) { // Check ten bytes three times
+        for (int y=0;y<10;y++) { // Get ten bytes
+          serBuffer[bufferPointer] = Serial1.read(); // Add a character to serBuffer
+          bufferPointer++; // Increment the pointer   
+        }
+        // Now check if these bytes were an acknowledgement
+        if ((serBuffer[bufferPointer - 10] == 0xB5) and (serBuffer[bufferPointer - 9] == 0x62) and (serBuffer[bufferPointer - 8] == 0x05)) {
+          // This must be an acknowledgement so simply ignore it and decrement bufferPointer by 10
+          bufferPointer -= 10;
+        }
+      }
+      
       loop_step = write_file; // start logging rawx data
     }
     break;
@@ -583,17 +605,26 @@ void loop() // run over and over again
         if (bufferPointer == SDpacket) {
           bufferPointer = 0;
           digitalWrite(RedLED, HIGH); // flash red LED
-          rawx_dataFile.write(serBuffer, SDpacket);
-          //rawx_dataFile.flush();
+          numBytes = rawx_dataFile.write(&serBuffer, SDpacket);
+          rawx_dataFile.sync(); // Sync the file system
           bytes_written += SDpacket;
-#ifdef DEBUG
-          Serial.print("SD Write: ");
-          Serial.print(SDpacket);
-          Serial.println(" Bytes");
-          Serial.print(bytes_written);
-          Serial.println(" Bytes written so far");
-#endif
           digitalWrite(RedLED, LOW);
+#ifdef DEBUG
+          if (numBytes != SDpacket) {
+            Serial.print("SD write error! Write size was ");
+            Serial.print(SDpacket);
+            Serial.print(". ");
+            Serial.print(numBytes);
+            Serial.println(" were written.");
+          }
+#endif
+//#ifdef DEBUG
+//          Serial.print("SD Write: ");
+//          Serial.print(SDpacket);
+//          Serial.println(" Bytes");
+//          Serial.print(bytes_written);
+//          Serial.println(" Bytes written so far");
+//#endif
         }
       }
       else {
@@ -615,56 +646,100 @@ void loop() // run over and over again
       sendUBX(setSFRBXoff, len_setSFRBX); // Disable messages
       sendUBX(setTIMoff, len_setTIM); // Disable messages
       int waitcount = 0;
-      // leave 30 bytes in the buffer as this should be the three message acknowledgements (3 x 10 bytes)
-      while (waitcount < 550) { // Wait for residual data (550msec seems to be the lowest valid waitcount for 4Hz (250msec) logging)
-        while (Serial1.available() > 30) {
-          serBuffer[bufferPointer] = Serial1.read();
+      // leave 30 bytes in the serial buffer as this _should_ be the three message acknowledgements (3 x 10 bytes)
+      while (waitcount < dwell) { // Wait for residual data
+        while (Serial1.available() > 30) { // Leave 30 bytes in the serial buffer
+          serBuffer[bufferPointer] = Serial1.read(); // Put extra bytes into serBuffer
           bufferPointer++;
-          if (bufferPointer == SDpacket) {
+          if (bufferPointer == SDpacket) { // Write a full packet
             bufferPointer = 0;
             digitalWrite(RedLED, HIGH); // flash red LED
-            rawx_dataFile.write(serBuffer, SDpacket);
-            //rawx_dataFile.flush();
+            numBytes = rawx_dataFile.write(&serBuffer, SDpacket);
+            rawx_dataFile.sync(); // Sync the file system
+            digitalWrite(RedLED, LOW);
             bytes_written += SDpacket;
 #ifdef DEBUG
+            if (numBytes != SDpacket) {
+              Serial.print("SD write error! Write size was ");
+              Serial.print(SDpacket);
+              Serial.print(". ");
+              Serial.print(numBytes);
+              Serial.println(" were written.");
+            }
             Serial.print("SD Write: ");
             Serial.print(SDpacket);
             Serial.println(" Bytes");
             Serial.print(bytes_written);
             Serial.println(" Bytes written so far");
 #endif
-            digitalWrite(RedLED, LOW);
           }
         }
         waitcount++;
         delay(1);
       }
+      // If there is any data left in serBuffer, write it to file
       if (bufferPointer > 0) {
         digitalWrite(RedLED, HIGH); // flash red LED
-        rawx_dataFile.write(serBuffer, bufferPointer); // Write remaining data
+        numBytes = rawx_dataFile.write(&serBuffer, bufferPointer); // Write remaining data
+        rawx_dataFile.sync(); // Sync the file system
         bytes_written += bufferPointer;
+        digitalWrite(RedLED, LOW);
 #ifdef DEBUG
+        if (numBytes != bufferPointer) {
+          Serial.print("SD write error! Write size was ");
+          Serial.print(bufferPointer);
+          Serial.print(". ");
+          Serial.print(numBytes);
+          Serial.println(" were written.");
+        }
+        Serial.print("Penultimate/Final SD Write: ");
+        Serial.print(bufferPointer);
+        Serial.println(" Bytes");
+        Serial.print(bytes_written);
+        Serial.println(" Bytes written");
+#endif
+        bufferPointer = 0; // reset bufferPointer
+      }
+      // We now have exactly 30 bytes left in the buffer. Let's check if they contain acknowledgements or residual data.
+      // If they contain residual data, save it to file. This means we have probably already saved acknowledgement(s)
+      // to file and there's now very little we can do about that except hope that RTKLib knows how to ignore them!
+      for (int x=0;x<3;x++) { // Check ten bytes three times
+        for (int y=0;y<10;y++) { // Add ten bytes
+          serBuffer[bufferPointer] = Serial1.read(); // Add a character to serBuffer
+          bufferPointer++; // Increment the pointer   
+        }
+        // Now check if these bytes were an acknowledgement
+        if ((serBuffer[bufferPointer - 10] == 0xB5) and (serBuffer[bufferPointer - 9] == 0x62) and (serBuffer[bufferPointer - 8] == 0x05)) {
+          // This must be an acknowledgement so simply ignore it and decrement bufferPointer by 10
+          bufferPointer -= 10;
+        }
+      }
+      // If the last 30 bytes did contain any data, write it to file now
+      if (bufferPointer > 0) {
+        digitalWrite(RedLED, HIGH); // flash red LED
+        numBytes = rawx_dataFile.write(&serBuffer, bufferPointer); // Write remaining data
+        rawx_dataFile.sync(); // Sync the file system
+        bytes_written += bufferPointer;
+        digitalWrite(RedLED, LOW);
+#ifdef DEBUG
+        if (numBytes != bufferPointer) {
+          Serial.print("SD write error! Write size was ");
+          Serial.print(bufferPointer);
+          Serial.print(". ");
+          Serial.print(numBytes);
+          Serial.println(" were written.");
+        }
         Serial.print("Final SD Write: ");
         Serial.print(bufferPointer);
         Serial.println(" Bytes");
+        Serial.print(bytes_written);
+        Serial.println(" Bytes written");
 #endif
-        digitalWrite(RedLED, LOW);
-        bufferPointer = 0; // reset bufferPointer - even though open_file will do it anyway
+        bufferPointer = 0; // reset bufferPointer
       }
-#ifdef DEBUG
-      Serial.println("Bytes left in the buffer were as follows. These should be the three message acknowledgements:");
-      while(Serial1.available()){ // Flush RX buffer - clear the acknowledgements - with debug
-        byte c = Serial1.read();
-        Serial.print("0x");
-        if (c < 16) { Serial.print("0"); }
-        Serial.print(c,HEX);
-        Serial.print(" ");
-        }
-      Serial.println();
-#else
-      while(Serial1.available()){Serial1.read();} // Flush RX buffer - clear the acknowledgements
-#endif
+      digitalWrite(RedLED, HIGH); // flash red LED
       rawx_dataFile.close(); // close the file
+      digitalWrite(RedLED, LOW);
 #ifdef DEBUG
       uint32_t filesize = rawx_dataFile.fileSize(); // Get the file size
       Serial.print("File size is ");
@@ -684,7 +759,6 @@ void loop() // run over and over again
       }
     }
     break;
-    
   }
 }
 
