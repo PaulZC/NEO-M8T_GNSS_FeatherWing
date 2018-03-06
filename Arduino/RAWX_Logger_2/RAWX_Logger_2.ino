@@ -6,16 +6,18 @@
 
 // Define how long we should log in minutes before changing to a new file
 // Sensible values are: 5, 10, 15, 20, 30, 60
-const int INTERVAL = 60;
+// Must be <= 60 (or RTC alarm code needs to be updated to match on HHMMSS)
+const int INTERVAL = 15;
 
 // Define how long we should wait in msec (approx.) for residual RAWX data before closing a log file
+// For a measurement rate of 4Hz (250msec), 300msec is a sensible value. i.e. slightly more than one measurement interval
 const int dwell = 300;
 
 // The RAWX log file has a .ubx suffix instead of .bin
 // The log filename starts with "r_" for the rover and "b_" for the static base
 
 // Define if this is the static base logger
-//#define STATIC // Comment this line out for the mobile rover logger
+#define STATIC // Comment this line out for the mobile rover logger
 
 // This code is written for the Adalogger M0 Feather
 // https://www.adafruit.com/products/2796
@@ -60,11 +62,9 @@ const int dwell = 300;
 // provide the date and time for the RAWX log file filename
 #include <Adafruit_GPS.h>
 Adafruit_GPS GPS(&Serial1); // M0 hardware serial
-     
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
 #define GPSECHO false
-     
 // this keeps track of whether we're using the interrupt
 // off by default!
 boolean usingInterrupt = false;
@@ -77,7 +77,7 @@ boolean usingInterrupt = false;
 
 #include <SPI.h>
 #include <SdFat.h>
-const uint8_t cardSelect = 4;
+const uint8_t cardSelect = 4; // Adalogger uses D4 as the SD SPI select
 SdFat sd;
 SdFile rawx_dataFile;
 #ifdef STATIC
@@ -104,7 +104,7 @@ float vbat;
 
 #include <RTCZero.h> // M0 Real Time Clock
 RTCZero rtc; // Create an rtc object
-bool alarmFlag = false; // Timer interrupt flag
+volatile bool alarmFlag = false; // RTC alarm (interrupt) flag
 
 // Count number of valid fixes before starting to log
 #define maxvalfix 10 // Collect at least this many valid fixes before logging starts
@@ -293,18 +293,9 @@ void sendUBX(const uint8_t *message, const int len) {
 }
 
 // RTC alarm interrupt
+// Must be kept as short as possible. Update the alarm time in the main loop, not here.
 void alarmMatch()
 {
-  uint8_t rtc_mins = rtc.getMinutes(); // Read the RTC minutes
-  uint8_t rtc_hours = rtc.getHours(); // Read the RTC hours
-  rtc_mins = rtc_mins + INTERVAL; // Add the INTERVAL to the RTC minutes
-  while (rtc_mins >= 60) { // If there has been an hour roll over
-    rtc_mins = rtc_mins - 60; // Subtract 60 minutes
-    rtc_hours = rtc_hours + 1; // Add an hour
-  }
-  rtc_hours = rtc_hours % 24; // Check for a day roll over
-  rtc.setAlarmMinutes(rtc_mins); // Set next alarm time (minutes)
-  rtc.setAlarmHours(rtc_hours); // Set next alarm time (hours)
   alarmFlag = true; // Set alarm flag
 }
 
@@ -326,8 +317,8 @@ void setup()
   // initialize swPin as an input for the stop switch
   pinMode(swPin, INPUT_PULLUP);
 
-  delay(10000); // Allow 10 sec for user to open serial monitor
-  //while (!Serial); // Wait for user to run python script or open serial monitor
+  delay(10000); // Allow 10 sec for user to open serial monitor (Comment this line if required)
+  //while (!Serial); // OR Wait for user to run python script or open serial monitor (Comment this line as required)
 
   Serial.begin(115200);
 
@@ -491,13 +482,13 @@ void loop() // run over and over again
           rtc.enableAlarm(rtc.MATCH_MMSS); // Alarm Match on minutes and seconds
           rtc.attachInterrupt(alarmMatch); // Attach alarm interrupt
 
-          // syntax checking:
-          // check if voltage is > LOWBAT(V), if not then don't try to write!
+          // check if voltage is > LOWBAT(V), if not then don't try to log any data
           if (vbat < LOWBAT) {
             Serial.println("Low Battery!");
             break;
           }
 
+          // Disable the GPGGA and GPRMC messages; set the RAWX measurement rate
           GPS.sendCommand("$PUBX,40,GGA,0,0,0,0*5A");  // Disable GGA
           delay(100);
           GPS.sendCommand("$PUBX,40,RMC,0,0,0,0*47");  // Disable RMC
@@ -515,19 +506,27 @@ void loop() // run over and over again
     // Open the log file
     case open_file: {
       
+      // Get the RTC time and date
+      uint8_t RTCseconds = rtc.getSeconds();
+      uint8_t RTCminutes = rtc.getMinutes();
+      uint8_t RTChours = rtc.getHours();
+      uint8_t RTCday = rtc.getDay();
+      uint8_t RTCmonth = rtc.getMonth();
+      uint8_t RTCyear = rtc.getYear();
+      
       // Do the divides to convert date and time to char
-      char secT = rtc.getSeconds()/10 + '0';
-      char secU = rtc.getSeconds()%10 + '0';
-      char minT = rtc.getMinutes()/10 + '0';
-      char minU = rtc.getMinutes()%10 + '0';
-      char hourT = rtc.getHours()/10 + '0';
-      char hourU = rtc.getHours()%10 + '0';
-      char dayT = rtc.getDay()/10 +'0';
-      char dayU = rtc.getDay()%10 +'0';
-      char monT = rtc.getMonth()/10 +'0';
-      char monU = rtc.getMonth()%10 +'0';
-      char yearT = rtc.getYear()/10 +'0';
-      char yearU = rtc.getYear()%10 +'0';
+      char secT = RTCseconds/10 + '0';
+      char secU = RTCseconds%10 + '0';
+      char minT = RTCminutes/10 + '0';
+      char minU = RTCminutes%10 + '0';
+      char hourT = RTChours/10 + '0';
+      char hourU = RTChours%10 + '0';
+      char dayT = RTCday/10 +'0';
+      char dayU = RTCday%10 +'0';
+      char monT = RTCmonth/10 +'0';
+      char monU = RTCmonth%10 +'0';
+      char yearT = RTCyear/10 +'0';
+      char yearU = RTCyear%10 +'0';
   
       // filename is limited to 8.3 characters so use format: YYYYMMDD/r_HHMMSS.ubx or YYYYMMDD/b_HHMMSS.ubx
       rawx_filename[2] = yearT;
@@ -569,6 +568,15 @@ void loop() // run over and over again
         while(1);
       }
 
+#ifdef DEBUG
+      // Set the log file creation time
+      if (!rawx_dataFile.timestamp(T_CREATE, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds)) {
+        Serial.println("Warning! Could not set file create timestamp!");
+      }
+#else
+      rawx_dataFile.timestamp(T_CREATE, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds);
+#endif
+
       digitalWrite(RedLED, LOW); // turn red LED off
 
       bytes_written = 0; // Clear bytes_written
@@ -606,7 +614,7 @@ void loop() // run over and over again
           bufferPointer = 0;
           digitalWrite(RedLED, HIGH); // flash red LED
           numBytes = rawx_dataFile.write(&serBuffer, SDpacket);
-          rawx_dataFile.sync(); // Sync the file system
+          //rawx_dataFile.sync(); // Sync the file system
           bytes_written += SDpacket;
           digitalWrite(RedLED, LOW);
 #ifdef DEBUG
@@ -631,7 +639,7 @@ void loop() // run over and over again
         // read battery voltage
         vbat = analogRead(A7) * (2.0 * 3.3 / 1023.0);
         // check if the stop button has been pressed or battery is low
-        // or if it is time to open a new file
+        // or if there has been an RTC alarm and it is time to open a new file
         if ((digitalRead(swPin) == LOW) or (vbat < LOWBAT) or (alarmFlag == true)) {
           loop_step = close_file; // now close the file
           break;
@@ -655,7 +663,7 @@ void loop() // run over and over again
             bufferPointer = 0;
             digitalWrite(RedLED, HIGH); // flash red LED
             numBytes = rawx_dataFile.write(&serBuffer, SDpacket);
-            rawx_dataFile.sync(); // Sync the file system
+            //rawx_dataFile.sync(); // Sync the file system
             digitalWrite(RedLED, LOW);
             bytes_written += SDpacket;
 #ifdef DEBUG
@@ -702,7 +710,7 @@ void loop() // run over and over again
       }
       // We now have exactly 30 bytes left in the buffer. Let's check if they contain acknowledgements or residual data.
       // If they contain residual data, save it to file. This means we have probably already saved acknowledgement(s)
-      // to file and there's now very little we can do about that except hope that RTKLib knows how to ignore them!
+      // to file and there's now very little we can do about that except hope that RTKLib knows to ignore them!
       for (int x=0;x<3;x++) { // Check ten bytes three times
         for (int y=0;y<10;y++) { // Add ten bytes
           serBuffer[bufferPointer] = Serial1.read(); // Add a character to serBuffer
@@ -732,12 +740,33 @@ void loop() // run over and over again
         Serial.print("Final SD Write: ");
         Serial.print(bufferPointer);
         Serial.println(" Bytes");
-        Serial.print(bytes_written);
-        Serial.println(" Bytes written");
 #endif
         bufferPointer = 0; // reset bufferPointer
       }
       digitalWrite(RedLED, HIGH); // flash red LED
+      // Get the RTC time and date
+      uint8_t RTCseconds = rtc.getSeconds();
+      uint8_t RTCminutes = rtc.getMinutes();
+      uint8_t RTChours = rtc.getHours();
+      uint8_t RTCday = rtc.getDay();
+      uint8_t RTCmonth = rtc.getMonth();
+      uint8_t RTCyear = rtc.getYear();
+#ifdef DEBUG
+      // Set log file write time
+      if (!rawx_dataFile.timestamp(T_WRITE, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds)) {
+        Serial.println("Warning! Could not set file write timestamp!");
+      }
+#else
+      rawx_dataFile.timestamp(T_WRITE, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds);
+#endif
+#ifdef DEBUG
+      // Set log file access time
+      if (!rawx_dataFile.timestamp(T_ACCESS, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds)) {
+        Serial.println("Warning! Could not set file access timestamp!");
+      }
+#else
+      rawx_dataFile.timestamp(T_ACCESS, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds);
+#endif      
       rawx_dataFile.close(); // close the file
       digitalWrite(RedLED, LOW);
 #ifdef DEBUG
@@ -749,10 +778,17 @@ void loop() // run over and over again
 #endif
       Serial.println("File closed!");
       if (alarmFlag == true) {
-        loop_step = open_file;
-        alarmFlag = false;
+        // If an RTC alarm was detected, set the RTC alarm time to the next INTERVAL and loop back to open_file.
+        // We only receive an RTC alarm on a minute mark, so it doesn't matter that the RTC seconds will have moved on at this point.
+        alarmFlag = false; // Clear the RTC alarm flag
+        uint8_t rtc_mins = rtc.getMinutes(); // Read the RTC minutes
+        rtc_mins = rtc_mins + INTERVAL; // Add the INTERVAL to the RTC minutes
+        rtc_mins = rtc_mins % 60; // Correct for hour rollover
+        rtc.setAlarmMinutes(rtc_mins); // Set next alarm time (minutes only - hours are ignored)
+        loop_step = open_file; // loop round again and open a new file
       }
       else {
+        // Either the battery is low or the user pressed the stop button. So, just wait for a reset.
         digitalWrite(RedLED, HIGH); // leave the red led on
         Serial.println("Waiting for reset...");
         while(1); // Wait for reset
