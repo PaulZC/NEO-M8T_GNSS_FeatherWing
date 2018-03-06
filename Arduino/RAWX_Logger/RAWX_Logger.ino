@@ -6,7 +6,7 @@
 // The log filename starts with "r_" for the rover and "b_" for the static base
 
 // Define if this is the static base logger
-//#define STATIC // Comment this line out for the mobile rover logger
+#define STATIC // Comment this line out for the mobile rover logger
 
 // This code is written for the Adalogger M0 Feather
 // https://www.adafruit.com/products/2796
@@ -503,6 +503,28 @@ void loop() // run over and over again
             break;
           }
           
+#ifdef DEBUG
+      if (!rawx_dataFile.timestamp(T_CREATE, (GPS.year+2000), GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds)) {
+        Serial.println("Warning! Could not set file create timestamp!");
+      }
+#else
+      rawx_dataFile.timestamp(T_CREATE, (GPS.year+2000), GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds);
+#endif
+#ifdef DEBUG
+      if (!rawx_dataFile.timestamp(T_ACCESS, (GPS.year+2000), GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds)) {
+        Serial.println("Warning! Could not set file create timestamp!");
+      }
+#else
+      rawx_dataFile.timestamp(T_ACCESS, (GPS.year+2000), GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds);
+#endif
+#ifdef DEBUG
+      if (!rawx_dataFile.timestamp(T_WRITE, (GPS.year+2000), GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds)) {
+        Serial.println("Warning! Could not set file create timestamp!");
+      }
+#else
+      rawx_dataFile.timestamp(T_WRITE, (GPS.year+2000), GPS.month, GPS.day, GPS.hour, GPS.minute, GPS.seconds);
+#endif
+
           bytes_written = 0; // Clear bytes_written
           bufferPointer = 0; // (Re)initialise bufferPointer
 
@@ -537,15 +559,15 @@ void loop() // run over and over again
           bufferPointer = 0;
           digitalWrite(RedLED, HIGH); // flash red LED
           rawx_dataFile.write(serBuffer, SDpacket);
-          rawx_dataFile.sync();
+          //rawx_dataFile.sync();
           bytes_written += SDpacket;
-#ifdef DEBUG
-          Serial.print("SD Write: ");
-          Serial.print(SDpacket);
-          Serial.println(" Bytes");
-          Serial.print(bytes_written);
-          Serial.println(" Bytes written so far");
-#endif
+//#ifdef DEBUG
+//          Serial.print("SD Write: ");
+//          Serial.print(SDpacket);
+//          Serial.println(" Bytes");
+//          Serial.print(bytes_written);
+//          Serial.println(" Bytes written so far");
+//#endif
           digitalWrite(RedLED, LOW);
         }
       }
@@ -578,13 +600,13 @@ void loop() // run over and over again
             rawx_dataFile.write(serBuffer, SDpacket);
             rawx_dataFile.sync();
             bytes_written += SDpacket;
-#ifdef DEBUG
-            Serial.print("SD Write: ");
-            Serial.print(SDpacket);
-            Serial.println(" Bytes");
-            Serial.print(bytes_written);
-            Serial.println(" Bytes written so far");
-#endif
+//#ifdef DEBUG
+//            Serial.print("SD Write: ");
+//            Serial.print(SDpacket);
+//            Serial.println(" Bytes");
+//            Serial.print(bytes_written);
+//            Serial.println(" Bytes written so far");
+//#endif
             digitalWrite(RedLED, LOW);
           }
         }
