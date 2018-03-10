@@ -154,14 +154,13 @@ Rover data is logged to a file called _r_hhmmss.ubx_, base (static) data is logg
 Since the code is logging a large amount of data, it is necessary to keep the log file open throughout. If the power is removed or the board is reset before the stop button is pressed, the logged data will be lost.
 
 [RAWX_Logger_2](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger_2) is an improved version of the logger.
-A new log file is automatically opened every _INTERVAL_ minutes to minimise data loss in the event of a power failure.
+A new log file is automatically opened every _INTERVAL_ minutes to: minimise data loss in the event of a power failure; and keep the file size manageable.
 RAWX_Logger_2 pauses the GNSS RAWX messages while one file is closed and another opened, incurring a data loss of one or two RAWX messages.
 
-[RAWX_Logger_3](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger_3) is experimental. Your mileage may vary!
-Again, a new log file is automatically opened every _INTERVAL_ minutes to minimise data loss in the event of a power failure, but the GNSS RAWX messages
-are _not_ paused while one file is closed and another opened. This technique is completely reliant on the serial receive buffer being large enough to store
-the incoming RAWX data between files. The code seems to work OK but it does need to be enhanced to be able to handle a loss of data sync
-(currently, the data is expected to be 'perfect').
+In [RAWX_Logger_3](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger_3), a new log file is automatically opened every
+_INTERVAL_ minutes, but the GNSS RAWX messages are _not_ paused while one file is closed and another opened, to allow contiguous data capture with no missing messages.
+This technique is completely reliant on the serial receive buffer being large enough to store the incoming RAWX data between files.
+In the unlikely event of a UBX checksum error or a loss of sync: the RAWX messages are paused, a new log file is opened, and then the RAWX messages are restarted.
 
 Connect a normally-open push-to-close switch between swPin and GND. By default, swPin is Digital Pin 15 (0.2" away from the GND pin on the Adalogger). The pin can be changed by editing the code.
 
@@ -187,7 +186,7 @@ and change this line:
 For RAWX_Logger, change it to:
 - #define SERIAL_BUFFER_SIZE 2048
 
-For RAWX_Logger_2, change it to:
+For RAWX_Logger_2 and RAWX_Logger_3, change it to:
 - #define SERIAL_BUFFER_SIZE 8192
 
 Check the reported freeMemory before and after to make sure the change has been successful. (You should find that you've lost twice as much memory as expected!)

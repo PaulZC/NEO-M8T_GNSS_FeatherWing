@@ -66,7 +66,7 @@ const int dwell = 300;
 Adafruit_GPS GPS(&Serial1); // M0 hardware serial
 // Set GPSECHO to 'false' to turn off echoing the GPS data to the Serial console
 // Set to 'true' if you want to debug and listen to the raw GPS sentences
-#define GPSECHO false
+#define GPSECHO true //false
 // this keeps track of whether we're using the interrupt
 // off by default!
 boolean usingInterrupt = false;
@@ -113,11 +113,13 @@ volatile bool alarmFlag = false; // RTC alarm (interrupt) flag
 int valfix = 0;
 
 // Loop Steps
-#define init        0
-#define open_file   1
-#define write_file  2
-#define new_file    3
-#define close_file  4
+#define init          0
+#define start_rawx    1
+#define open_file     2
+#define write_file    3
+#define new_file      4
+#define close_file    5
+#define restart_file  6
 int loop_step = init;
 
 // UBX State
@@ -130,6 +132,7 @@ int loop_step = init;
 #define processing_payload      6
 #define looking_for_checksum_A  7
 #define looking_for_checksum_B  8
+#define sync_lost               9
 int ubx_state = looking_for_B5;
 int ubx_length = 0;
 int ubx_class = 0;
@@ -425,8 +428,6 @@ void setup()
   }
   Serial.println("SD Card initialized!");
 
-  bufferPointer = 0; // Make sure bufferPointer is initialised (should be redundant!)
-
   // turn red LED off
   digitalWrite(RedLED, LOW);
   
@@ -519,34 +520,35 @@ void loop() // run over and over again
           delay(1100); // Wait
           while(Serial1.available()){Serial1.read();} // Flush RX buffer to clear UBX acknowledgement
           
-          bytes_written = 0; // Clear bytes_written
-          bufferPointer = 0; // (Re)initialise bufferPointer
-    
-          ubx_state = looking_for_B5; // set ubx_state to expect B5
-          ubx_length = 0; // set ubx_length to zero
-              
-          // Start RAWX messages
-          sendUBX(setRAWX, len_setRAWX); // Set RXM-RAWX message rate
-          sendUBX(setSFRBX, len_setSFRBX); // Set RXM-SFRBX message rate
-          sendUBX(setTIM, len_setTIM); // Set TIM-TM2 message rate
-
-          while (Serial1.available() < 30) { ; } // Wait for three UBX acknowledgements' worth of data (3 x 10 = 30 bytes)
-          
-          for (int x=0;x<3;x++) { // Check ten bytes three times
-            for (int y=0;y<10;y++) { // Get ten bytes
-              serBuffer[bufferPointer] = Serial1.read(); // Add a character to serBuffer
-              bufferPointer++; // Increment the pointer   
-            }
-            // Now check if these bytes were an acknowledgement
-            if ((serBuffer[bufferPointer - 10] == 0xB5) and (serBuffer[bufferPointer - 9] == 0x62) and (serBuffer[bufferPointer - 8] == 0x05)) {
-              // This must be an acknowledgement so simply ignore it and decrement bufferPointer by 10
-              bufferPointer -= 10;
-            }
-          }
-      
-          loop_step = open_file; // start logging rawx data
+          loop_step = start_rawx; // start rawx messages
         }
       }
+    }
+    break;
+
+    // (Re)Start RAWX messages
+    case start_rawx: {
+      sendUBX(setRAWX, len_setRAWX); // Set RXM-RAWX message rate
+      sendUBX(setSFRBX, len_setSFRBX); // Set RXM-SFRBX message rate
+      sendUBX(setTIM, len_setTIM); // Set TIM-TM2 message rate
+
+      bufferPointer = 0; // (Re)initialise bufferPointer
+
+      while (Serial1.available() < 30) { ; } // Wait for three UBX acknowledgements' worth of data (3 x 10 = 30 bytes)
+      
+      for (int x=0;x<3;x++) { // Check ten bytes three times
+        for (int y=0;y<10;y++) { // Get ten bytes
+          serBuffer[bufferPointer] = Serial1.read(); // Add a character to serBuffer
+          bufferPointer++; // Increment the pointer   
+        }
+        // Now check if these bytes were an acknowledgement
+        if ((serBuffer[bufferPointer - 10] == 0xB5) and (serBuffer[bufferPointer - 9] == 0x62) and (serBuffer[bufferPointer - 8] == 0x05)) {
+          // This must be an acknowledgement so simply ignore it and decrement bufferPointer by 10
+          bufferPointer -= 10;
+        }
+      }
+
+      loop_step = open_file; // start logging rawx data
     }
     break;
 
@@ -626,6 +628,11 @@ void loop() // run over and over again
 
       digitalWrite(RedLED, LOW); // turn red LED off
 
+      bytes_written = 0; // Clear bytes_written
+
+      ubx_state = looking_for_B5; // set ubx_state to expect B5
+      ubx_length = 0; // set ubx_length to zero
+          
       loop_step = write_file; // start logging rawx data
     }
     break;
@@ -669,16 +676,15 @@ void loop() // run over and over again
         // Payload: length bytes
         // Checksum: two bytes
         // Only allow a new file to be opened when a complete packet has been processed and ubx_state has returned to "looking_for_B5"
+        // Or when a data error is detected (sync_lost)
         switch (ubx_state) {
           case (looking_for_B5): {
             if (c == 0xB5) { // Have we found Sync Char 1 (0xB5) when we were expecting one?
               ubx_state = looking_for_62; // Now look for Sync Char 2 (0x62)
             }
             else {
-#ifdef DEBUG
               Serial.println("Panic!! Was expecting Sync Char 0xB5 but did not receive one!");
-#endif
-              ; // Not sure what to do here... Do nothing more - or keep looking for a B5 (which might be data, not a header byte!)?
+              ubx_state = sync_lost;
             }
           }
           break;
@@ -689,10 +695,8 @@ void loop() // run over and over again
               ubx_state = looking_for_class; // Now look for Class byte
             }
             else {
-#ifdef DEBUG
               Serial.println("Panic!! Was expecting Sync Char 0x62 but did not receive one!");
-#endif
-              ; // Not sure what to do here... Do nothing more?
+              ubx_state = sync_lost;
             }
           }
           break;
@@ -705,7 +709,7 @@ void loop() // run over and over again
             // Class syntax checking
             if ((ubx_class != 0x02) and (ubx_class != 0x0D)) {
               Serial.println("Panic!! Was expecting Class of 0x02 or 0x0D but did not receive one!");
-              // Not sure what to do here... Do nothing more?
+              ubx_state = sync_lost;
             }
 #endif
           }
@@ -719,14 +723,11 @@ void loop() // run over and over again
             // ID syntax checking
             if ((ubx_class == 0x02) and ((ubx_ID != 0x15) and (ubx_ID != 0x13))) {
               Serial.println("Panic!! Was expecting ID of 0x15 or 0x13 but did not receive one!");
-              // Not sure what to do here... Do nothing more?
+              ubx_state = sync_lost;
             }
             else if ((ubx_class == 0x0D) and (ubx_ID != 0x03)) {
               Serial.println("Panic!! Was expecting ID of 0x03 but did not receive one!");
-              // Not sure what to do here... Do nothing more?
-            }
-            else {
-              ; // Not sure what to do here... Do nothing more?
+              ubx_state = sync_lost;
             }
 #endif
           }
@@ -758,24 +759,16 @@ void loop() // run over and over again
           break;
           case (looking_for_checksum_A): {
             ubx_checksum_A = c;
-#ifdef DEBUG
-            if (ubx_expected_checksum_A != ubx_checksum_A) {
-              Serial.println("Panic!! Checksum A did not match!");
-              // Not sure what to do here... Do nothing more?
-            }
-#endif
             ubx_state = looking_for_checksum_B;
           }
           break;
           case (looking_for_checksum_B): {
             ubx_checksum_B = c;
-#ifdef DEBUG
-            if (ubx_expected_checksum_B != ubx_checksum_B) {
-              Serial.println("Panic!! Checksum B did not match!");
-              // Not sure what to do here... Do nothing more?
+            ubx_state = looking_for_B5; // All bytes received so go back to looking for a new Sync Char 1 unless there is a checksum error
+            if ((ubx_expected_checksum_A != ubx_checksum_A) or (ubx_expected_checksum_B != ubx_checksum_B)) {
+              Serial.println("Panic!! Checksum error!");
+              ubx_state = sync_lost;
             }
-#endif
-            ubx_state = looking_for_B5; // All bytes received so go back to looking for a new Sync Char 1
           }
           break;
         }
@@ -794,10 +787,13 @@ void loop() // run over and over again
         loop_step = new_file; // now close the file and open a new one
         break;
       }
+      else if (ubx_state == sync_lost) {
+        loop_step = restart_file; // Sync has been lost so stop RAWX messages and open a new file before restarting RAWX
+      }
     }
     break;
 
-    // Close the current log file and open a new one
+    // Close the current log file and open a new one without stopping RAWX messages
     case new_file: {
       digitalWrite(RedLED, HIGH); // flash red LED
       // If there is any data left in serBuffer, write it to file
@@ -1003,6 +999,140 @@ void loop() // run over and over again
       while(1); // Wait for reset
     }
     break;
+
+    // RAWX data lost sync so disable RAWX messages, save any residual data, close the file, open another and restart RAWX messages
+    // Don't update the next RTC alarm - leave it as it is
+    case restart_file: {
+      sendUBX(setRAWXoff, len_setRAWX); // Disable messages
+      sendUBX(setSFRBXoff, len_setSFRBX); // Disable messages
+      sendUBX(setTIMoff, len_setTIM); // Disable messages
+      int waitcount = 0;
+      // leave 30 bytes in the serial buffer as this _should_ be the three message acknowledgements (3 x 10 bytes)
+      while (waitcount < dwell) { // Wait for residual data
+        while (Serial1.available() > 30) { // Leave 30 bytes in the serial buffer
+          serBuffer[bufferPointer] = Serial1.read(); // Put extra bytes into serBuffer
+          bufferPointer++;
+          if (bufferPointer == SDpacket) { // Write a full packet
+            bufferPointer = 0;
+            digitalWrite(RedLED, HIGH); // flash red LED
+            numBytes = rawx_dataFile.write(&serBuffer, SDpacket);
+            //rawx_dataFile.sync(); // Sync the file system
+            digitalWrite(RedLED, LOW);
+            bytes_written += SDpacket;
+#ifdef DEBUG
+            if (numBytes != SDpacket) {
+              Serial.print("SD write error! Write size was ");
+              Serial.print(SDpacket);
+              Serial.print(". ");
+              Serial.print(numBytes);
+              Serial.println(" were written.");
+            }
+//            Serial.print("SD Write: ");
+//            Serial.print(SDpacket);
+//            Serial.println(" Bytes");
+//            Serial.print(bytes_written);
+//            Serial.println(" Bytes written so far");
+#endif
+          }
+        }
+        waitcount++;
+        delay(1);
+      }
+      // If there is any data left in serBuffer, write it to file
+      if (bufferPointer > 0) {
+        digitalWrite(RedLED, HIGH); // flash red LED
+        numBytes = rawx_dataFile.write(&serBuffer, bufferPointer); // Write remaining data
+        rawx_dataFile.sync(); // Sync the file system
+        bytes_written += bufferPointer;
+        digitalWrite(RedLED, LOW);
+#ifdef DEBUG
+        if (numBytes != bufferPointer) {
+          Serial.print("SD write error! Write size was ");
+          Serial.print(bufferPointer);
+          Serial.print(". ");
+          Serial.print(numBytes);
+          Serial.println(" were written.");
+        }
+        Serial.print("Penultimate/Final SD Write: ");
+        Serial.print(bufferPointer);
+        Serial.println(" Bytes");
+        Serial.print(bytes_written);
+        Serial.println(" Bytes written");
+#endif
+        bufferPointer = 0; // reset bufferPointer
+      }
+      // We now have exactly 30 bytes left in the buffer. Let's check if they contain acknowledgements or residual data.
+      // If they contain residual data, save it to file. This means we have probably already saved acknowledgement(s)
+      // to file and there's now very little we can do about that except hope that RTKLib knows to ignore them!
+      for (int x=0;x<3;x++) { // Check ten bytes three times
+        for (int y=0;y<10;y++) { // Add ten bytes
+          serBuffer[bufferPointer] = Serial1.read(); // Add a character to serBuffer
+          bufferPointer++; // Increment the pointer   
+        }
+        // Now check if these bytes were an acknowledgement
+        if ((serBuffer[bufferPointer - 10] == 0xB5) and (serBuffer[bufferPointer - 9] == 0x62) and (serBuffer[bufferPointer - 8] == 0x05)) {
+          // This must be an acknowledgement so simply ignore it and decrement bufferPointer by 10
+          bufferPointer -= 10;
+        }
+      }
+      // If the last 30 bytes did contain any data, write it to file now
+      if (bufferPointer > 0) {
+        digitalWrite(RedLED, HIGH); // flash red LED
+        numBytes = rawx_dataFile.write(&serBuffer, bufferPointer); // Write remaining data
+        rawx_dataFile.sync(); // Sync the file system
+        bytes_written += bufferPointer;
+        digitalWrite(RedLED, LOW);
+#ifdef DEBUG
+        if (numBytes != bufferPointer) {
+          Serial.print("SD write error! Write size was ");
+          Serial.print(bufferPointer);
+          Serial.print(". ");
+          Serial.print(numBytes);
+          Serial.println(" were written.");
+        }
+        Serial.print("Final SD Write: ");
+        Serial.print(bufferPointer);
+        Serial.println(" Bytes");
+#endif
+        bufferPointer = 0; // reset bufferPointer
+      }
+      digitalWrite(RedLED, HIGH); // flash red LED
+      // Get the RTC time and date
+      uint8_t RTCseconds = rtc.getSeconds();
+      uint8_t RTCminutes = rtc.getMinutes();
+      uint8_t RTChours = rtc.getHours();
+      uint8_t RTCday = rtc.getDay();
+      uint8_t RTCmonth = rtc.getMonth();
+      uint8_t RTCyear = rtc.getYear();
+#ifdef DEBUG
+      // Set log file write time
+      if (!rawx_dataFile.timestamp(T_WRITE, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds)) {
+        Serial.println("Warning! Could not set file write timestamp!");
+      }
+#else
+      rawx_dataFile.timestamp(T_WRITE, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds);
+#endif
+#ifdef DEBUG
+      // Set log file access time
+      if (!rawx_dataFile.timestamp(T_ACCESS, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds)) {
+        Serial.println("Warning! Could not set file access timestamp!");
+      }
+#else
+      rawx_dataFile.timestamp(T_ACCESS, (RTCyear+2000), RTCmonth, RTCday, RTChours, RTCminutes, RTCseconds);
+#endif      
+      rawx_dataFile.close(); // close the file
+      digitalWrite(RedLED, LOW);
+#ifdef DEBUG
+      uint32_t filesize = rawx_dataFile.fileSize(); // Get the file size
+      Serial.print("File size is ");
+      Serial.println(filesize);
+      Serial.print("File size should be ");
+      Serial.println(bytes_written);
+#endif
+      Serial.println("File closed!");
+      loop_step = start_rawx; // loop round again and restart rawx messages before opening a new file
+    }
+    break;  
   }
 }
 
