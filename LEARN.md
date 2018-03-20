@@ -11,9 +11,12 @@ It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for Po
 
 See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/NEO-M8T_GNSS_FeatherWing.pdf) for the schematic, layout and Bill Of Materials.
 
-The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design files.
-The [SMA_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle/SMA_Antenna) directory contains the schematic and pcb design files for an extended
+The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and PCB design files.
+
+The [SMA_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle/SMA_Antenna) directory contains the schematic and PCB design files for an extended
 version of the PCB which incorporates a robust SMA connector for the antenna instead of uFL.
+
+![NEO-M8T_FeatherWing_SMA_2](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_SMA_2.JPG)
 
 The [Arduino](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino) directory contains code for the [Adafruit Feather M0 Adalogger](https://www.adafruit.com/products/2796) which will log RAWX data to SD card.
 - https://www.adafruit.com/products/2796
@@ -132,7 +135,7 @@ The NEO-M8T needs to be connected to an external antenna via a uFL connector. 3V
 
 ![NEO-M8T_FeatherWing_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Antenna.JPG)
 
-The [SMA_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle/SMA_Antenna) directory contains the schematic and pcb design files for an extended
+The [SMA_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle/SMA_Antenna) directory contains the schematic and PCB design files for an extended
 version of the PCB which incorporates a robust SMA connector for the antenna instead of uFL. The connector is Johnson part number 142-0711-821 (Farnell / Element 14 order code 1019328).
 
 ![NEO-M8T_FeatherWing_SMA_1](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_SMA_1.JPG)
@@ -160,6 +163,9 @@ You can find the messages to change the navigation mode and GNSS configuration i
 
 Rover data is logged to a file called _r_hhmmss.ubx_, base (static) data is logged to a file called _b_hhmmss.ubx_. The code logs RAWX data continuously to SD card until the stop button is pressed.
 Since the code is logging a large amount of data, it is necessary to keep the log file open throughout. If the power is removed or the board is reset before the stop button is pressed, the logged data will be lost.
+Connect a normally-open push-to-close switch between swPin and GND. By default, swPin is Digital Pin 15 (0.2" away from the GND pin on the Adalogger). The pin can be changed by editing the code.
+
+![NEO-M8T_FeatherWing_Adalogger_StopSwitch](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Adalogger_StopSwitch.JPG)
 
 [RAWX_Logger_2](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger_2) is an improved version of the logger.
 A new log file is automatically opened every _INTERVAL_ minutes to: minimise data loss in the event of a power failure; and keep the file size manageable.
@@ -169,10 +175,6 @@ In [RAWX_Logger_3](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/maste
 _INTERVAL_ minutes, but the GNSS RAWX messages are _not_ paused while one file is closed and another opened, to allow contiguous data capture with no missing messages.
 This technique is completely reliant on the serial receive buffer being large enough to store the incoming RAWX data between files.
 In the unlikely event of a UBX checksum error or a loss of sync: the RAWX messages are paused, a new log file is opened, and then the RAWX messages are restarted.
-
-Connect a normally-open push-to-close switch between swPin and GND. By default, swPin is Digital Pin 15 (0.2" away from the GND pin on the Adalogger). The pin can be changed by editing the code.
-
-![NEO-M8T_FeatherWing_Adalogger_StopSwitch](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Adalogger_StopSwitch.JPG)
 
 By default, RAWX data is logged every 250 msec (4Hz). This can be slowed down by selecting an alternate CFG-RATE message.
 
