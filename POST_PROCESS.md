@@ -95,6 +95,7 @@ Next I ran RTKPOST (rtkpost.exe):
 I changed the _Options_ to:
 
 ![rtkpost_options_1.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost_options_1.JPG)
+![rtkpost_options_5.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost_options_5.JPG)
 ![rtkpost_options_2.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost_options_2.JPG)
 ![rtkpost_options_3.JPG](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/rtkpost_options_3.JPG)
 
