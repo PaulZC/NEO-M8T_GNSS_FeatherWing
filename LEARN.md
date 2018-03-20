@@ -12,6 +12,8 @@ It also provides Multi-GNSS Raw Measurement (RAWX) Data which can be used for Po
 See [NEO-M8T_GNSS_FeatherWing.pdf](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/NEO-M8T_GNSS_FeatherWing.pdf) for the schematic, layout and Bill Of Materials.
 
 The [Eagle](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle) directory contains the schematic and pcb design files.
+The [SMA_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle/SMA_Antenna) directory contains the schematic and pcb design files for an extended
+version of the PCB which incorporates a robust SMA connector for the antenna instead of uFL.
 
 The [Arduino](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino) directory contains code for the [Adafruit Feather M0 Adalogger](https://www.adafruit.com/products/2796) which will log RAWX data to SD card.
 - https://www.adafruit.com/products/2796
@@ -129,6 +131,12 @@ If you install the battery _and_ have the split pad shorted **BAD THINGS WILL HA
 The NEO-M8T needs to be connected to an external antenna via a uFL connector. 3V power for an active antenna is provided.
 
 ![NEO-M8T_FeatherWing_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_Antenna.JPG)
+
+The [SMA_Antenna](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Eagle/SMA_Antenna) directory contains the schematic and pcb design files for an extended
+version of the PCB which incorporates a robust SMA connector for the antenna instead of uFL. The connector is Johnson part number 142-0711-821 (Farnell / Element 14 order code 1019328).
+
+![NEO-M8T_FeatherWing_SMA_1](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_SMA_1.JPG)
+![NEO-M8T_FeatherWing_SMA_2](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/blob/master/img/NEO-M8T_FeatherWing_SMA_2.JPG)
 
 ## Serial Protocol
 
