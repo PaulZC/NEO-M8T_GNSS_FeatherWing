@@ -201,7 +201,9 @@ For RAWX_Logger_2 and RAWX_Logger_3, change it to:
 
 Check the reported freeMemory before and after to make sure the change has been successful. (You should find that you've lost twice as much memory as expected!)
 
-The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Flaga's MemoryFree. See below for the download links.
+The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Flaga's MemoryFree. 
+For RAWX_Logger_2 and RAWX_Logger_3, you will also need the Arduino Real Time Clock library for the M0 (Arduino Zero).
+See below for the download links.
 
 ## PC Logging
 
@@ -241,7 +243,7 @@ Useful documentation about the NEO-M8T and its protocol specification can be fou
 
 - https://github.com/mpflaga/Arduino-MemoryFree
 
-## For RAWX_Logger_2 and RAWX_Logger_3: Arduino Real Time Clock library for the M0
+## Arduino Real Time Clock library for the M0
 
 - https://github.com/arduino-libraries/RTCZero
 
