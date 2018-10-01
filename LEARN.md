@@ -241,6 +241,10 @@ Useful documentation about the NEO-M8T and its protocol specification can be fou
 
 - https://github.com/mpflaga/Arduino-MemoryFree
 
+## For RAWX_Logger_2 and RAWX_Logger_3: Arduino Real Time Clock library for the M0
+
+- https://github.com/arduino-libraries/RTCZero
+
 ## Acknowledgements
 
 The NEO-M8T GNSS FeatherWing is based extensively on an original design by Adafruit Industries:

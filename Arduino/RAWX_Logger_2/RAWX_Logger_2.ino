@@ -102,6 +102,8 @@ int numBytes;
 float vbat;
 #define LOWBAT 3.55 // Low battery voltage
 
+// Include Real Time Clock support for the M0
+// https://github.com/arduino-libraries/RTCZero
 #include <RTCZero.h> // M0 Real Time Clock
 RTCZero rtc; // Create an rtc object
 volatile bool alarmFlag = false; // RTC alarm (interrupt) flag
