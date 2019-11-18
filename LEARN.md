@@ -176,6 +176,10 @@ _INTERVAL_ minutes, but the GNSS RAWX messages are _not_ paused while one file i
 This technique is completely reliant on the serial receive buffer being large enough to store the incoming RAWX data between files.
 In the unlikely event of a UBX checksum error or a loss of sync: the RAWX messages are paused, a new log file is opened, and then the RAWX messages are restarted.
 
+In [RAWX_Logger_4](https://github.com/PaulZC/NEO-M8T_GNSS_FeatherWing/tree/master/Arduino/RAWX_Logger_4), serial data is automatically diverted into a large
+RingBufferN by a timer interrupt, which means you do not need to increase the size of the serial receive buffer (by editing RingBuffer.h). Version 4 also includes NeoPixel support
+making it easier to tell what the code is doing. The NeoPixel and LEDs can be disabled if the need the logger to be blacked out.
+
 By default, RAWX data is logged every 250 msec (4Hz). This can be slowed down by selecting an alternate CFG-RATE message.
 
 By default, the code will log raw measurements from GPS + Galileo + GLONASS + SBAS. This can be changed to GPS + Galileo + BeiDou + SBAS by commenting out the line which says _#define GLONASS_
@@ -184,7 +188,7 @@ By default, the code will use the static navigation mode. The chosen mobile (rov
 
 The code now calculates the UBX checksum bytes for you, so it is much easier to make changes to the GNSS configuration. See sendUBX() in the code.
 
-You will need to increase the size of the serial buffer to avoid data overruns while data is being written to the SD card. See this post by MartinL:
+For RAWX_Logger, RAWX_Logger_2 and RAWX_Logger_3, you will need to increase the size of the serial receive buffer to avoid data overruns while data is being written to the SD card. See this post by MartinL:
 - https://forum.arduino.cc/index.php?topic=365220.0
 
 For the Adafruit Feather M0 Adalogger (SAMD), under Windows, edit:
@@ -199,10 +203,12 @@ For RAWX_Logger, change it to:
 For RAWX_Logger_2 and RAWX_Logger_3, change it to:
 - #define SERIAL_BUFFER_SIZE 8192
 
-Check the reported freeMemory before and after to make sure the change has been successful. (You should find that you've lost twice as much memory as expected!)
+RAWX_Logger_4 uses a large RingBufferN to store the data. You do not need to edit RingBuffer.h if you use RAWX_Logger_4.
+
+If you do edit RingBuffer.h, check the reported freeMemory before and after to make sure the change has been successful. (You should find that you've lost twice as much memory as expected!)
 
 The code uses: the Adafruit GPS Library; Bill Greiman's SdFat; and Michael P. Flaga's MemoryFree. 
-For RAWX_Logger_2 and RAWX_Logger_3, you will also need the Arduino Real Time Clock library for the M0 (Arduino Zero).
+For RAWX_Logger_2, RAWX_Logger_3 and RAWX_Logger_4, you will also need the Arduino Real Time Clock library for the M0 (Arduino Zero).
 See below for the download links.
 
 ## PC Logging
